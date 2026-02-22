@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Степени оксигенации | Список услуг</title>
+    <link rel="stylesheet" href="/static/styles/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {{template "header" .}}
+
+    <div class="top-tools">
+        <a href="/requests/{{.RequestID}}" class="cart-icon-link" aria-label="Открыть заявку #{{.RequestID}}" data-request-id="{{.RequestID}}" data-cart-count="{{.CartCount}}">
+            <span class="cart-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 5h2l1.1 8.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L20 8H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="10" cy="19" r="1.5" fill="currentColor"/>
+                    <circle cx="17" cy="19" r="1.5" fill="currentColor"/>
+                </svg>
+            </span>
+            <span class="cart-badge">{{.CartCount}}</span>
+        </a>
+    </div>
+
+    <form action="/services" method="GET" class="search-container">
+        <input type="text" name="query" class="search-input" placeholder="Поиск..." value="{{.Query}}">
+    </form>
+
+    <main class="container">
+        <h1 class="page-title">Степени оксигенации</h1>
+
+        <div class="cards-grid">
+            {{range .Services}}
+            <a href="/services/{{.ID}}" class="card" data-service-id="{{.ID}}" data-request-id="{{$.RequestID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
+                <div class="card-image">
+                    <img src="{{.ImageURL}}" alt="{{.Name}}">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{.Name}}</h3>
+                    <p class="card-index">{{.Benchmark}}</p>
+                    <p class="card-desc">{{.ShortDescription}}</p>
+                </div>
+            </a>
+            {{else}}
+            <p class="empty-state">По вашему запросу ничего не найдено.</p>
+            {{end}}
+        </div>
+    </main>
+</body>
+</html>

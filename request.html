@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Состав заявки | Степени оксигенации</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="btn-home" aria-label="На главную">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 10.5L12 3l9 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.5 10v9.5h11V10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 19.5v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <p class="header-title">Степени оксигенации</p>
+            <span class="header-spacer" aria-hidden="true"></span>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="request-meta-card">
+            <h1 class="request-title-main">Заявка пациента: Иванов И.И.</h1>
+            <div class="request-meta-grid">
+                <div class="meta-item">
+                    <span class="meta-label">Значение в крови + ФИО пациента</span>
+                    <span class="meta-value">85.5 мм рт.ст. + Иванов И.И.</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">FiO2</span>
+                    <span class="meta-value">0.6 (60%)</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">ID заявки</span>
+                    <span class="meta-value">101</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Текущая степень по индексу</span>
+                    <span class="meta-value">Умеренная ДН (ОРДС)</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="mm-result-box">
+            <h2>Результат</h2>
+            <div class="mm-result-row">
+                <span class="mm-label">Индекс оксигенации:</span>
+                <span class="mm-value">142.5</span>
+            </div>
+            <div class="mm-result-row">
+                <span class="mm-label">Степень по результату:</span>
+                <span class="mm-value">Умеренная ДН (ОРДС)</span>
+            </div>
+            <p class="mm-comment">
+                Комментарий врача: состояние средней тяжести, рекомендован контроль коэффициента
+                через 6 часов и продолжение кислородной терапии.
+            </p>
+        </section>
+
+        <section class="request-services">
+            <h2>Степени оксигенации в заявке</h2>
+            <p class="request-note">В заявке показаны контрольные степени, но актуальной для пациента считается только строка со статусом "Текущая степень".</p>
+
+            <div class="service-card service-card-header">
+                <div class="service-row service-row-header">
+                    <span class="service-field">Степень оксигенации</span>
+                    <span class="service-field">Изображение</span>
+                    <span class="service-field">Диапазон индекса</span>
+                    <span class="service-field">Статус в заявке</span>
+                    <span class="service-field">Комментарий (м-м)</span>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-row">
+                    <span class="service-field"><a href="detail.html?id=1" class="service-link">Нормальная оксигенация</a></span>
+                    <span class="service-field"><img class="service-thumb" src="http://localhost:9000/images/normal.png" alt="Нормальная оксигенация"></span>
+                    <span class="service-field">PaO2/FiO2 &gt; 300</span>
+                    <span class="service-field">Контроль в динамике</span>
+                    <span class="service-field">-</span>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-row">
+                    <span class="service-field"><a href="detail.html?id=2" class="service-link">Легкая ДН</a></span>
+                    <span class="service-field"><img class="service-thumb" src="http://localhost:9000/images/mild.png" alt="Легкая ДН"></span>
+                    <span class="service-field">PaO2/FiO2 201-300</span>
+                    <span class="service-field">Контроль в динамике</span>
+                    <span class="service-field">-</span>
+                </div>
+            </div>
+
+            <div class="service-card service-active">
+                <div class="service-row">
+                    <span class="service-field"><a href="detail.html?id=3" class="service-link">Умеренная ДН (ОРДС)</a></span>
+                    <span class="service-field"><img class="service-thumb" src="http://localhost:9000/images/moderate.png" alt="Умеренная ДН"></span>
+                    <span class="service-field">PaO2/FiO2 101-200</span>
+                    <span class="service-field">Текущая степень</span>
+                    <span class="service-field">Основной диагноз</span>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-row">
+                    <span class="service-field"><a href="detail.html?id=4" class="service-link">Тяжелая ДН (ОРДС)</a></span>
+                    <span class="service-field"><img class="service-thumb" src="http://localhost:9000/images/severe.png" alt="Тяжелая ДН"></span>
+                    <span class="service-field">PaO2/FiO2 ≤ 100</span>
+                    <span class="service-field">Контроль в динамике</span>
+                    <span class="service-field">-</span>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
