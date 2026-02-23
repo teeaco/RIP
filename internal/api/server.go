@@ -24,7 +24,7 @@ func StartServer() {
 	mux.HandleFunc("GET /requests/{id}", h.GetRequest)
 
 	staticFS := http.FileServer(http.Dir(resolveProjectPath("resources")))
-	mux.Handle("GET /static/", http.StripPrefix("/static/", staticFS))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(staticFS)))
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
@@ -48,6 +48,15 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		next.ServeHTTP(w, r)
 		log.Printf("%s %s %s", r.Method, r.URL.RequestURI(), time.Since(start))
+	})
+}
+
+func noCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		next.ServeHTTP(w, r)
 	})
 }
 

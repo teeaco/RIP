@@ -22,8 +22,6 @@ type requestServiceRow struct {
 	Benchmark   string
 	ImageURL    string
 	VideoURL    string
-	MMValue     string
-	InRequest   string
 	IsDiagnosis bool
 }
 
@@ -112,16 +110,7 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 		}
 
 		mmValue := request.MMByServiceID[service.ID]
-		if strings.TrimSpace(mmValue) == "" {
-			mmValue = "-"
-		}
-
-		statusLabel := "Контроль в динамике"
-		isDiagnosis := false
-		if mmValue != "-" {
-			statusLabel = "Текущая степень"
-			isDiagnosis = true
-		}
+		isDiagnosis := strings.TrimSpace(mmValue) != "" && strings.TrimSpace(mmValue) != "-"
 
 		rows = append(rows, requestServiceRow{
 			ID:          service.ID,
@@ -129,8 +118,6 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 			Benchmark:   service.Benchmark,
 			ImageURL:    service.ImageURL,
 			VideoURL:    service.VideoURL,
-			MMValue:     mmValue,
-			InRequest:   statusLabel,
 			IsDiagnosis: isDiagnosis,
 		})
 	}

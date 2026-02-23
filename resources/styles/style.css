@@ -417,6 +417,7 @@ body {
 }
 
 .request-services {
+    width: 100%;
     margin-bottom: 20px;
 }
 
@@ -425,12 +426,7 @@ body {
     font-weight: 600;
     color: #6f58c2;
     margin-bottom: 12px;
-}
-
-.request-note {
-    margin: -2px 0 12px;
-    color: #4f4f4f;
-    font-size: 14px;
+    text-align: center;
 }
 
 .service-card {
@@ -454,19 +450,25 @@ body {
 
 .service-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1.3fr 0.8fr 1.2fr;
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
     align-items: center;
+    width: 100%;
 }
 
 .service-field {
     font-size: 14px;
-    text-align: left;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
 }
 
 .service-row.service-row-header .service-field {
     color: #ffffff;
     font-weight: 600;
+    min-height: auto;
 }
 
 .service-thumb {

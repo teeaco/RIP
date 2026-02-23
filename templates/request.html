@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Состав заявки | Степени оксигенации</title>
-    <link rel="stylesheet" href="/static/styles/style.css">
+    <title>Последний расчет | Степени оксигенации</title>
+    <link rel="stylesheet" href="/static/styles/style.css?v=20260223-1">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -12,11 +12,11 @@
 
     <main class="container">
         <section class="request-meta-card">
-            <h1 class="request-title-main">Заявка пациента: {{.Request.PatientName}}</h1>
+            <h1 class="request-title-main">Последний расчет: {{.Request.PatientName}}</h1>
             <div class="request-meta-grid">
                 <div class="meta-item">
-                    <span class="meta-label">Значение в крови + ФИО пациента</span>
-                    <span class="meta-value">{{.Request.BloodValuePaO2}} + {{.Request.PatientName}}</span>
+                    <span class="meta-label">PaO2</span>
+                    <span class="meta-value">{{.Request.BloodValuePaO2}}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">FiO2</span>
@@ -47,16 +47,13 @@
         </section>
 
         <section class="request-services">
-            <h2>Степени оксигенации в заявке</h2>
-            <p class="request-note">В заявке показаны контрольные степени, но актуальной для пациента считается только строка со статусом "Текущая степень".</p>
+            <h2>Степени оксигенации</h2>
 
             <div class="service-card service-card-header">
                 <div class="service-row service-row-header">
                     <span class="service-field">Степень оксигенации</span>
                     <span class="service-field">Изображение</span>
                     <span class="service-field">Диапазон индекса</span>
-                    <span class="service-field">Статус в заявке</span>
-                    <span class="service-field">Комментарий (м-м)</span>
                 </div>
             </div>
 
@@ -66,8 +63,6 @@
                     <span class="service-field"><a href="/services/{{.ID}}" class="service-link">{{.Name}}</a></span>
                     <span class="service-field"><img class="service-thumb" src="{{.ImageURL}}" alt="{{.Name}}"></span>
                     <span class="service-field">{{.Benchmark}}</span>
-                    <span class="service-field">{{.InRequest}}</span>
-                    <span class="service-field">{{.MMValue}}</span>
                 </div>
             </div>
             {{end}}
