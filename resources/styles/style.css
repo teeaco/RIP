@@ -82,7 +82,7 @@ body {
     border: 1px solid #000000;
     border-radius: 12px;
     padding: 0;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
     position: relative;
 }
 
@@ -123,6 +123,16 @@ body {
 
 .cart-label {
     display: none;
+}
+
+.cart-icon-link-disabled {
+    opacity: 0.5;
+    cursor: default;
+    border-color: #808080;
+}
+
+.cart-icon-link-disabled .cart-badge {
+    color: #808080;
 }
 
 .search-container {
@@ -168,12 +178,11 @@ body {
 }
 
 .card {
-    display: block;
+    display: flex;
+    flex-direction: column;
     background-color: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 15px;
-    text-decoration: none;
-    color: #000000;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     overflow: hidden;
 }
@@ -202,6 +211,35 @@ body {
 
 .card-content {
     padding: 16px;
+}
+
+.card-link {
+    display: block;
+    color: #000000;
+    text-decoration: none;
+    flex: 1 1 auto;
+}
+
+.card-action {
+    padding: 0 16px 16px;
+}
+
+.btn-add {
+    width: 100%;
+    border: 1px solid #6f58c2;
+    background: #6f58c2;
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-add:hover {
+    background: #54419c;
+    border-color: #54419c;
 }
 
 .card-title {
@@ -303,6 +341,15 @@ body {
     font-weight: 600;
 }
 
+.detail-add-form {
+    margin-bottom: 20px;
+}
+
+.btn-add.btn-add-detail {
+    width: auto;
+    min-width: 220px;
+}
+
 .detail-section {
     margin-bottom: 20px;
 }
@@ -389,6 +436,53 @@ body {
     color: #6f58c2;
 }
 
+.calc-formula {
+    font-size: 14px;
+    color: #6f58c2;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.calc-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(170px, 1fr)) auto;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 12px;
+}
+
+.calc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #4f4f4f;
+}
+
+.calc-field input {
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: "Roboto", sans-serif;
+}
+
+.calc-field input:focus {
+    outline: none;
+    border-color: #6f58c2;
+}
+
+.btn-calc {
+    width: auto;
+    min-width: 130px;
+}
+
+.calc-error {
+    margin-bottom: 10px;
+    color: #b30000;
+    font-size: 13px;
+}
+
 .mm-result-row {
     display: flex;
     justify-content: space-between;
@@ -414,6 +508,28 @@ body {
     border-radius: 10px;
     padding: 12px;
     font-size: 15px;
+    margin-bottom: 14px;
+}
+
+.request-delete-form {
+    margin-top: 8px;
+}
+
+.btn-delete-request {
+    border: 1px solid #b30000;
+    background: #ffffff;
+    color: #b30000;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-delete-request:hover {
+    background: #b30000;
+    color: #ffffff;
 }
 
 .request-services {
@@ -471,6 +587,20 @@ body {
     min-height: auto;
 }
 
+.service-main-field {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+}
+
+.service-extra {
+    margin-top: 6px;
+    color: #666666;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
 .service-thumb {
     width: 72px;
     height: 72px;
@@ -493,6 +623,11 @@ body {
 @media (max-width: 900px) {
     .request-meta-grid {
         grid-template-columns: 1fr;
+    }
+
+    .calc-form {
+        grid-template-columns: 1fr;
+        align-items: stretch;
     }
 
     .service-row.service-row-header,

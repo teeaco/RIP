@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"rip/internal/app/handler"
@@ -12,24 +13,35 @@ import (
 )
 
 func StartServer() {
-	repo := repository.NewRepository()
+	repo, err := repository.NewRepository(repository.Config{
+		Host:     envOrDefault("DB_HOST", "127.0.0.1"),
+		Port:     envOrDefault("DB_PORT", "55432"),
+		User:     envOrDefault("DB_USER", "root"),
+		Password: envOrDefault("DB_PASSWORD", "root"),
+		DBName:   envOrDefault("DB_NAME", "RIP"),
+		SSLMode:  envOrDefault("DB_SSLMODE", "disable"),
+	})
+	if err != nil {
+		log.Fatalf("database init failed: %v", err)
+	}
+
 	h := handler.NewHandler(repo)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/services", http.StatusFound)
 	})
+
 	mux.HandleFunc("GET /services", h.GetServices)
 	mux.HandleFunc("GET /services/{id}", h.GetServiceDetail)
 	mux.HandleFunc("GET /requests/{id}", h.GetRequest)
+	mux.HandleFunc("POST /requests/add-service", h.AddServiceToDraft)
+	mux.HandleFunc("POST /requests/{id}/delete", h.DeleteRequest)
 
 	staticFS := http.FileServer(http.Dir(resolveProjectPath("resources")))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(staticFS)))
 
-	port := os.Getenv("APP_PORT")
-	if port == "" {
-		port = "8080"
-	}
+	port := envOrDefault("APP_PORT", "8080")
 
 	server := &http.Server{
 		Addr:              ":" + port,
@@ -41,6 +53,14 @@ func StartServer() {
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("server failed: %v", err)
 	}
+}
+
+func envOrDefault(key, fallback string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	return value
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

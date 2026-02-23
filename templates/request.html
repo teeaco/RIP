@@ -35,15 +35,33 @@
 
         <section class="mm-result-box">
             <h2>Результат</h2>
+            <p class="calc-formula">Формула: PaO2 / FiO2</p>
+            <form action="/requests/{{.Request.ID}}" method="GET" class="calc-form">
+                <label class="calc-field">
+                    <span>PaO2</span>
+                    <input type="text" name="pao2" value="{{.Request.PaO2Input}}" placeholder="например 85.5">
+                </label>
+                <label class="calc-field">
+                    <span>FiO2</span>
+                    <input type="text" name="fio2" value="{{.Request.FiO2Input}}" placeholder="например 0.60">
+                </label>
+                <button type="submit" class="btn-add btn-calc">Рассчитать</button>
+            </form>
+            {{if .CalculationError}}
+            <p class="calc-error">{{.CalculationError}}</p>
+            {{end}}
             <div class="mm-result-row">
                 <span class="mm-label">Индекс оксигенации:</span>
-                <span class="mm-value">{{printf "%.1f" .Request.MMCoefficient}}</span>
+                <span class="mm-value">{{.Request.MMCoefficient}}</span>
             </div>
             <div class="mm-result-row">
                 <span class="mm-label">Степень по результату:</span>
                 <span class="mm-value">{{.Request.DiagnosisLabel}}</span>
             </div>
             <p class="mm-comment">Комментарий врача: {{.Request.MMComment}}</p>
+            <form action="/requests/{{.Request.ID}}/delete" method="POST" class="request-delete-form">
+                <button type="submit" class="btn-delete-request">Логически удалить заявку</button>
+            </form>
         </section>
 
         <section class="request-services">
@@ -60,7 +78,10 @@
             {{range .Rows}}
             <div class="service-card{{if .IsDiagnosis}} service-active{{end}}" data-service-id="{{.ID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
                 <div class="service-row">
-                    <span class="service-field"><a href="/services/{{.ID}}" class="service-link">{{.Name}}</a></span>
+                    <span class="service-field service-main-field">
+                        <a href="/services/{{.ID}}" class="service-link">{{.Name}}</a>
+                        <small class="service-extra">Количество: {{.Quantity}}{{if ne .DoctorComment "-"}} | м-м: {{.DoctorComment}}{{end}}</small>
+                    </span>
                     <span class="service-field"><img class="service-thumb" src="{{.ImageURL}}" alt="{{.Name}}"></span>
                     <span class="service-field">{{.Benchmark}}</span>
                 </div>

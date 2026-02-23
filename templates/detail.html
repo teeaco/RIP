@@ -23,10 +23,15 @@
 
             <h1 class="detail-title">{{.Service.Name}}</h1>
             <p class="detail-index">{{.Service.Benchmark}}</p>
+            <form action="/requests/add-service" method="POST" class="detail-add-form">
+                <input type="hidden" name="service_id" value="{{.Service.ID}}">
+                <input type="hidden" name="return_to" value="/services/{{.Service.ID}}">
+                <button type="submit" class="btn-add btn-add-detail">Добавить в заявку</button>
+            </form>
 
             <div class="detail-section">
                 <h2 class="section-title">Описание</h2>
-                <p class="detail-text">{{.Service.FullDescription}}</p>
+                <p class="detail-text">{{.Service.Description}}</p>
             </div>
 
             <div class="detail-section">

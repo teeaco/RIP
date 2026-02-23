@@ -11,6 +11,7 @@
     {{template "header" .}}
 
     <div class="top-tools">
+        {{if .HasDraft}}
         <a href="/requests/{{.RequestID}}" class="cart-icon-link" aria-label="Открыть заявку #{{.RequestID}}" data-request-id="{{.RequestID}}" data-cart-count="{{.CartCount}}">
             <span class="cart-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -21,6 +22,18 @@
             </span>
             <span class="cart-badge">{{.CartCount}}</span>
         </a>
+        {{else}}
+        <span class="cart-icon-link cart-icon-link-disabled" aria-disabled="true" title="Черновик появится после добавления услуги">
+            <span class="cart-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 5h2l1.1 8.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L20 8H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="10" cy="19" r="1.5" fill="currentColor"/>
+                    <circle cx="17" cy="19" r="1.5" fill="currentColor"/>
+                </svg>
+            </span>
+            <span class="cart-badge">0</span>
+        </span>
+        {{end}}
     </div>
 
     <form action="/services" method="GET" class="search-container">
@@ -32,16 +45,23 @@
 
         <div class="cards-grid">
             {{range .Services}}
-            <a href="/services/{{.ID}}" class="card" data-service-id="{{.ID}}" data-request-id="{{$.RequestID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
-                <div class="card-image">
-                    <img src="{{.ImageURL}}" alt="{{.Name}}">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">{{.Name}}</h3>
-                    <p class="card-index">{{.Benchmark}}</p>
-                    <p class="card-desc">{{.ShortDescription}}</p>
-                </div>
-            </a>
+            <article class="card" data-service-id="{{.ID}}" data-request-id="{{$.RequestID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
+                <a href="/services/{{.ID}}" class="card-link">
+                    <div class="card-image">
+                        <img src="{{.ImageURL}}" alt="{{.Name}}">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">{{.Name}}</h3>
+                        <p class="card-index">{{.Benchmark}}</p>
+                        <p class="card-desc">{{.Description}}</p>
+                    </div>
+                </a>
+                <form action="/requests/add-service" method="POST" class="card-action">
+                    <input type="hidden" name="service_id" value="{{.ID}}">
+                    <input type="hidden" name="return_to" value="/services{{if $.Query}}?query={{$.Query}}{{end}}">
+                    <button type="submit" class="btn-add">Добавить в заявку</button>
+                </form>
+            </article>
             {{else}}
             <p class="empty-state">По вашему запросу ничего не найдено.</p>
             {{end}}

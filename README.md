@@ -1,43 +1,94 @@
-﻿# Лабораторная 1 (backend + шаблоны + MinIO)
+# Лабораторная 2 (PostgreSQL + GORM + шаблоны)
 
-## Запуск сервера
-1. `go test ./...`
-2. `go run ./cmd/rip`
-3. Открыть `http://localhost:8080/services`
+## Формула расчета результата
+Индекс оксигенации рассчитывается по формуле:
 
-Если `8080` занят:
-- PowerShell: `$env:APP_PORT="8081"; go run ./cmd/rip`
-- Тогда URL: `http://localhost:8081/services`
+`PaO2 / FiO2`
 
-## Роутинг (3 GET + 3 контроллера)
-- `GET /services` -> список услуг + серверный поиск `query`
-- `GET /services/{id}` -> карточка услуги по `id`
-- `GET /requests/{id}` -> просмотр заявки по `id`
+Поле в заявке: `mm_coefficient`.
 
-## Данные (без БД)
-- Коллекция услуг: массив `[]Service`
-- Коллекция заявок: словарь `map[int]Request`
-- Источник: `internal/app/repository/repository.go`
+На странице заявки есть форма ввода `PaO2` и `FiO2` (без JavaScript).  
+Пользователь вводит значения, отправляет GET-форму, и сервер пересчитывает:
+- индекс оксигенации
+- степень по результату
 
-## Где находится логика
-- Модели: `internal/app/model/model.go`
-- Репозиторий: `internal/app/repository/repository.go`
+## Что реализовано
+- 4 таблицы по предметной области:
+  - `app_users`
+  - `oxygenation_services`
+  - `oxygenation_requests`
+  - `oxygenation_request_services`
+- 5 статусов заявки:
+  - `draft`
+  - `deleted`
+  - `formed`
+  - `completed`
+  - `rejected`
+- составной уникальный ключ в m-m:
+  - `(request_id, service_id)` в `oxygenation_request_services`
+- ограничение: у пользователя не более одной `draft` заявки:
+  - частичный уникальный индекс `ux_single_draft_request`
+- ORM (GORM) для:
+  - получения/поиска услуг
+  - карточки услуги
+  - создания/чтения черновика
+  - добавления услуги в черновик
+- логическое удаление заявки через SQL `UPDATE` (без ORM).
+
+## HTTP методы (5)
+- `GET /services` — список услуг + поиск
+- `GET /services/{id}` — карточка услуги
+- `GET /requests/{id}` — состав заявки
+- `POST /requests/add-service` — добавить услугу в текущую заявку (черновик)
+- `POST /requests/{id}/delete` — логически удалить заявку (SQL UPDATE)
+
+## Запуск
+1. Поднять инфраструктуру:
+   - `docker compose up -d db adminer minio redis`
+2. Проверить контейнеры:
+   - `docker compose ps`
+3. Запустить приложение:
+   - `go test ./...`
+   - `go run ./cmd/rip`
+4. Открыть:
+   - приложение: `http://localhost:8080/services`
+   - Adminer: `http://localhost:8081`
+
+## Параметры подключения приложения к БД
+По умолчанию приложение подключается к контейнерному Postgres:
+
+- `DB_HOST=127.0.0.1`
+- `DB_PORT=55432`
+- `DB_USER=root`
+- `DB_PASSWORD=root`
+- `DB_NAME=RIP`
+- `DB_SSLMODE=disable`
+
+Если нужно, можно переопределить:
+- PowerShell: `$env:DB_PORT="55432"; $env:APP_PORT="8080"; go run ./cmd/rip`
+
+## Доступ в Adminer
+- System: `PostgreSQL`
+- Server: `db` (если Adminer открыт из docker-compose) или `localhost` (если открываете локально)
+- Username: `root`
+- Password: `root`
+- Database: `RIP`
+
+## Как показать лабораторную
+1. В Adminer добавить новую услугу в таблицу `oxygenation_services`.
+2. На `/services` выполнить поиск по названию/диапазону.
+3. Добавить две услуги кнопкой `Добавить в заявку` (POST через ORM).
+4. Открыть корзину (черновик) и показать состав заявки.
+5. Нажать `Логически удалить заявку` (POST, SQL UPDATE).
+6. Перейти по URL удаленной заявки и показать, что она недоступна.
+7. В БД сделать `SELECT` по `oxygenation_requests` и `oxygenation_request_services`:
+   - показать `status='deleted'`
+   - показать новую `draft` после повторного добавления услуг.
+8. Изменить поля заявки/м-м в БД и обновить страницу приложения.
+
+## Где что находится
+- Сервер и роутинг: `internal/api/server.go`
 - Контроллеры: `internal/app/handler/handler.go`
-- HTTP сервер: `internal/api/server.go`
-- Точка входа: `cmd/rip/main.go`
-
-## Шаблоны и статика
+- Модели + миграции + ORM + SQL update: `internal/app/repository/repository.go`
 - Шаблоны: `templates/*.html`
-- Общий header (одинаковая кнопка Домой): `templates/partials/header.html`
-- CSS: `resources/styles/style.css`
-- Раздача статики: `/static/...`
-
-## MinIO (локально)
-1. `docker compose up -d minio`
-2. Консоль: `http://localhost:9001`
-3. Логин/пароль: `root / rootroot`
-4. Создать bucket `images`
-5. Загрузить файлы:
-   - `normal.png`, `mild.png`, `moderate.png`, `severe.png`
-   - `normal.mp4`, `mild.mp4`, `moderate.mp4`, `severe.mp4`
-6. Дать bucket политику чтения (public read)
+- Стили: `resources/styles/style.css`
