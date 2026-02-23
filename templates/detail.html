@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Service.Name}} | Карточка услуги</title>
+    <link rel="stylesheet" href="/static/styles/style.css?v=20260223-1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="portrait-mode">
+    {{template "header" .}}
+
+    <video autoplay muted loop class="background-video">
+        <source src="{{.Service.VideoURL}}" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+    </video>
+
+    <div class="content-container">
+        <div class="content-wrapper">
+            <div class="detail-preview">
+                <img src="{{.Service.ImageURL}}" alt="{{.Service.Name}}">
+            </div>
+
+            <h1 class="detail-title">{{.Service.Name}}</h1>
+            <p class="detail-index">{{.Service.Benchmark}}</p>
+
+            <div class="detail-section">
+                <h2 class="section-title">Описание</h2>
+                <p class="detail-text">{{.Service.FullDescription}}</p>
+            </div>
+
+            <div class="detail-section">
+                <h2 class="section-title">Клинические признаки</h2>
+                <ul class="detail-list">
+                    {{range .Signs}}
+                    <li>{{.}}</li>
+                    {{end}}
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h2 class="section-title">Рекомендации</h2>
+                <ul class="detail-list">
+                    {{range .Recs}}
+                    <li>{{.}}</li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
