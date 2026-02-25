@@ -59,7 +59,7 @@
                 <form action="/requests/add-service" method="POST" class="card-action">
                     <input type="hidden" name="service_id" value="{{.ID}}">
                     <input type="hidden" name="return_to" value="/services{{if $.Query}}?query={{$.Query}}{{end}}">
-                    <button type="submit" class="btn-add">Добавить в заявку</button>
+                    <button type="submit" class="btn-add">Добавить</button>
                 </form>
             </article>
             {{else}}

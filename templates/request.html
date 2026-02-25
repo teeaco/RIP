@@ -60,7 +60,7 @@
             </div>
             <p class="mm-comment">Комментарий врача: {{.Request.MMComment}}</p>
             <form action="/requests/{{.Request.ID}}/delete" method="POST" class="request-delete-form">
-                <button type="submit" class="btn-delete-request">Логически удалить заявку</button>
+                <button type="submit" class="btn-delete-request">Удалить</button>
             </form>
         </section>
 
@@ -80,7 +80,7 @@
                 <div class="service-row">
                     <span class="service-field service-main-field">
                         <a href="/services/{{.ID}}" class="service-link">{{.Name}}</a>
-                        <small class="service-extra">Количество: {{.Quantity}}{{if ne .DoctorComment "-"}} | м-м: {{.DoctorComment}}{{end}}</small>
+                        <small class="service-extra">Количество: {{.Quantity}}</small>
                     </span>
                     <span class="service-field"><img class="service-thumb" src="{{.ImageURL}}" alt="{{.Name}}"></span>
                     <span class="service-field">{{.Benchmark}}</span>

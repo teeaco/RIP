@@ -218,7 +218,7 @@ func (r *Repository) seed() error {
 	services := []OxygenationService{
 		{
 			Name:            "Нормальная оксигенация",
-			Description:     "Эталон степени для нормального газообмена.",
+			Description:     "Нормальный газообмен.",
 			Status:          ServiceStatusActive,
 			ImageURL:        strPtr("http://localhost:9000/images/normal.png"),
 			VideoURL:        strPtr("http://localhost:9000/images/normal.mp4"),
@@ -229,7 +229,7 @@ func (r *Repository) seed() error {
 		},
 		{
 			Name:            "Легкая ДН",
-			Description:     "Эталон степени для легкой дыхательной недостаточности.",
+			Description:     "Легкая дыхательная недостаточность.",
 			Status:          ServiceStatusActive,
 			ImageURL:        strPtr("http://localhost:9000/images/mild.png"),
 			VideoURL:        strPtr("http://localhost:9000/images/mild.mp4"),
@@ -240,7 +240,7 @@ func (r *Repository) seed() error {
 		},
 		{
 			Name:            "Умеренная ДН (ОРДС)",
-			Description:     "Эталон степени для умеренной дыхательной недостаточности.",
+			Description:     "Умеренная дыхательная недостаточность.",
 			Status:          ServiceStatusActive,
 			ImageURL:        strPtr("http://localhost:9000/images/moderate.png"),
 			VideoURL:        strPtr("http://localhost:9000/images/moderate.mp4"),
@@ -251,7 +251,7 @@ func (r *Repository) seed() error {
 		},
 		{
 			Name:            "Тяжелая ДН (ОРДС)",
-			Description:     "Эталон степени для тяжелой дыхательной недостаточности.",
+			Description:     "Тяжелая дыхательная недостаточность.",
 			Status:          ServiceStatusActive,
 			ImageURL:        strPtr("http://localhost:9000/images/severe.png"),
 			VideoURL:        strPtr("http://localhost:9000/images/severe.mp4"),
@@ -355,6 +355,8 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			return err
 		}
 
+		doctorComment := BuildDoctorOpinion(service.Description, service.Recommendations)
+
 		var item RequestService
 		err = tx.Where("request_id = ? AND service_id = ?", request.ID, serviceID).First(&item).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -375,6 +377,7 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 				DoctorComment: strPtr("По мнению врача: степень добавлена в черновик."),
 				CreatedAt:     time.Now().UTC(),
 			}
+			item.DoctorComment = strPtr(doctorComment)
 			if err := tx.Create(&item).Error; err != nil {
 				return err
 			}
@@ -386,13 +389,14 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			if item.DoctorComment == nil || strings.TrimSpace(*item.DoctorComment) == "" {
 				item.DoctorComment = strPtr("По мнению врача: количество степени изменено.")
 			}
+			item.DoctorComment = strPtr(doctorComment)
 			if err := tx.Save(&item).Error; err != nil {
 				return err
 			}
 		}
 
 		request.DiagnosisLabel = strPtr(service.Name)
-		request.MMComment = strPtr("По мнению врача: текущая степень обновлена.")
+		request.MMComment = strPtr(defaultRequestCommentText())
 		request.MMCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
 		if err := tx.Save(&request).Error; err != nil {
 			return err
@@ -460,6 +464,7 @@ func newDraftRequest(userID uint, diagnosis string) OxygenationRequest {
 		DiagnosisLabel: &diagnosis,
 		MMComment:      strPtr("По мнению врача: черновик создан автоматически."),
 	}
+	request.MMComment = strPtr(defaultRequestCommentText())
 	request.MMCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
 
 	return request
@@ -497,6 +502,26 @@ func DiagnosisByOxygenationIndex(index float64) string {
 		return "Умеренная ДН (ОРДС)"
 	default:
 		return "Тяжелая ДН (ОРДС)"
+	}
+}
+
+func defaultRequestCommentText() string {
+	return "Состояние средней тяжести. Рекомендован повторный контроль коэффициента через 6 часов."
+}
+
+func BuildDoctorOpinion(description, recommendations string) string {
+	description = strings.TrimSpace(description)
+	recommendations = strings.TrimSpace(recommendations)
+
+	switch {
+	case description != "" && recommendations != "":
+		return "По мнению врача: " + description + " Рекомендации: " + recommendations
+	case description != "":
+		return "По мнению врача: " + description
+	case recommendations != "":
+		return "По мнению врача: Рекомендации: " + recommendations
+	default:
+		return "По мнению врача: требуется дополнительная оценка состояния."
 	}
 }
 
