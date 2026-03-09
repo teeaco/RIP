@@ -12,6 +12,8 @@ import (
 
 	"rip/internal/app/handler"
 	"rip/internal/app/repository"
+	"rip/internal/app/rest"
+	"rip/internal/app/storage"
 )
 
 func StartServer() {
@@ -28,8 +30,24 @@ func StartServer() {
 	}
 
 	h := handler.NewHandler(repo)
+	var uploader storage.Uploader
+	minioUploader, uploaderErr := storage.NewMinioUploader(storage.MinioConfig{
+		Endpoint:      envOrDefault("MINIO_ENDPOINT", "localhost:9000"),
+		AccessKey:     envOrDefault("MINIO_ACCESS_KEY", "root"),
+		SecretKey:     envOrDefault("MINIO_SECRET_KEY", "rootroot"),
+		UseSSL:        envBool("MINIO_USE_SSL", false),
+		Bucket:        envOrDefault("MINIO_BUCKET", "images"),
+		PublicBaseURL: envOrDefault("MINIO_PUBLIC_BASE_URL", "http://localhost:9000/images"),
+	})
+	if uploaderErr != nil {
+		log.Printf("minio uploader disabled: %v", uploaderErr)
+	} else {
+		uploader = minioUploader
+	}
+	apiHandler := rest.NewHandler(repo, uploader)
 
 	mux := http.NewServeMux()
+	apiHandler.RegisterRoutes(mux)
 
 	mux.HandleFunc("GET /services", h.GetServices)
 	mux.HandleFunc("GET /services/", func(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +59,10 @@ func StartServer() {
 	mux.HandleFunc("POST /oxygenation_request/{id}/delete", h.DeleteRequest)
 
 	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			http.NotFound(w, r)
+			return
+		}
 		http.Redirect(w, r, "/services", http.StatusFound)
 	})
 
@@ -91,6 +113,18 @@ func envOrDefault(key, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func envBool(key string, fallback bool) bool {
+	value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
+	switch value {
+	case "1", "true", "yes", "y", "on":
+		return true
+	case "0", "false", "no", "n", "off":
+		return false
+	default:
+		return fallback
+	}
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

@@ -53,10 +53,13 @@ const (
 )
 
 var (
-	ErrDraftNotFound   = errors.New("draft request not found")
-	ErrRequestNotFound = errors.New("request not found")
-	ErrRequestDeleted  = errors.New("request deleted")
-	ErrServiceNotFound = errors.New("service not found")
+	ErrDraftNotFound          = errors.New("draft request not found")
+	ErrRequestNotFound        = errors.New("request not found")
+	ErrRequestDeleted         = errors.New("request deleted")
+	ErrServiceNotFound        = errors.New("service not found")
+	ErrRequestServiceNotFound = errors.New("request service not found")
+	ErrInvalidTransition      = errors.New("invalid status transition")
+	ErrValidationFailed       = errors.New("validation failed")
 )
 
 type Repository struct {
@@ -64,11 +67,12 @@ type Repository struct {
 }
 
 type User struct {
-	ID        uint      `gorm:"primaryKey"`
-	Login     string    `gorm:"size:64;not null;uniqueIndex"`
-	FullName  string    `gorm:"size:120;not null"`
-	Role      string    `gorm:"size:32;not null"`
-	CreatedAt time.Time `gorm:"not null"`
+	ID           uint      `gorm:"primaryKey"`
+	Login        string    `gorm:"size:64;not null;uniqueIndex"`
+	FullName     string    `gorm:"size:120;not null"`
+	Role         string    `gorm:"size:32;not null"`
+	PasswordHash string    `gorm:"size:128;not null;default:''"`
+	CreatedAt    time.Time `gorm:"not null"`
 }
 
 func (User) TableName() string {
@@ -188,18 +192,20 @@ func (r *Repository) seed() error {
 
 	users := []User{
 		{
-			ID:        DefaultCreatorUserID,
-			Login:     "creator",
-			FullName:  "Иванов И.И.",
-			Role:      "creator",
-			CreatedAt: now,
+			ID:           DefaultCreatorUserID,
+			Login:        "creator",
+			FullName:     "Иванов И.И.",
+			Role:         "creator",
+			PasswordHash: HashPassword("creator"),
+			CreatedAt:    now,
 		},
 		{
-			ID:        DefaultModeratorUserID,
-			Login:     "moderator",
-			FullName:  "Петров П.П.",
-			Role:      "moderator",
-			CreatedAt: now,
+			ID:           DefaultModeratorUserID,
+			Login:        "moderator",
+			FullName:     "Петров П.П.",
+			Role:         "moderator",
+			PasswordHash: HashPassword("moderator"),
+			CreatedAt:    now,
 		},
 	}
 
@@ -343,7 +349,7 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			Where("creator_id = ? AND status = ?", userID, RequestStatusDraft).
 			First(&request).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			request = newDraftRequest(userID, service.Name)
+			request = newDraftRequest(userID)
 			if err := tx.Create(&request).Error; err != nil {
 				return err
 			}
@@ -396,8 +402,9 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 		}
 
 		request.DiagnosisLabel = strPtr(service.Name)
-		request.MMComment = strPtr(defaultRequestCommentText())
-		request.MMCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
+		if request.MMComment == nil || strings.TrimSpace(*request.MMComment) == "" {
+			request.MMComment = strPtr(defaultRequestCommentText())
+		}
 		if err := tx.Save(&request).Error; err != nil {
 			return err
 		}
@@ -447,24 +454,21 @@ func (r *Repository) SoftDeleteDraftBySQL(userID, requestID uint) error {
 	return nil
 }
 
-func newDraftRequest(userID uint, diagnosis string) OxygenationRequest {
+func newDraftRequest(userID uint) OxygenationRequest {
 	now := time.Now().UTC()
 	patientName := "Иванов И.И."
-	bloodValue := 85.5
-	fio2Value := 0.60
 
 	request := OxygenationRequest{
 		Status:         RequestStatusDraft,
 		CreatedAt:      now,
 		CreatorID:      userID,
 		PatientName:    &patientName,
-		BloodValuePaO2: &bloodValue,
-		FiO2Value:      &fio2Value,
-		DiagnosisLabel: &diagnosis,
+		BloodValuePaO2: nil,
+		FiO2Value:      nil,
+		DiagnosisLabel: nil,
 		MMComment:      strPtr("По мнению врача: черновик создан автоматически."),
 	}
 	request.MMComment = strPtr(defaultRequestCommentText())
-	request.MMCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
 
 	return request
 }
