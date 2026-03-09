@@ -36,8 +36,6 @@ type requestView struct {
 	PatientName    string
 	BloodValuePaO2 string
 	FiO2Value      string
-	PaO2Input      string
-	FiO2Input      string
 	MMCoefficient  string
 	DiagnosisLabel string
 	MMComment      string
@@ -58,9 +56,8 @@ type detailPageData struct {
 }
 
 type requestPageData struct {
-	Request          requestView
-	Rows             []requestServiceRow
-	CalculationError string
+	Request requestView
+	Rows    []requestServiceRow
 }
 
 func NewHandler(repo *repository.Repository) *Handler {
@@ -74,6 +71,7 @@ func (h *Handler) GetServices(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "services unavailable", http.StatusInternalServerError)
 		return
 	}
+
 	for i := range services {
 		services[i].Description = normalizeServiceDescription(services[i].Description)
 	}
@@ -98,19 +96,20 @@ func (h *Handler) GetServices(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetServiceDetail(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid service id", http.StatusBadRequest)
+		redirectToServices(w, r)
 		return
 	}
 
 	service, err := h.repo.GetServiceByID(uint(id))
 	if err != nil {
 		if errors.Is(err, repository.ErrServiceNotFound) {
-			http.Error(w, "service not found", http.StatusNotFound)
+			redirectToServices(w, r)
 			return
 		}
 		http.Error(w, "service unavailable", http.StatusInternalServerError)
 		return
 	}
+
 	service.Description = normalizeServiceDescription(service.Description)
 
 	data := detailPageData{
@@ -125,53 +124,22 @@ func (h *Handler) GetServiceDetail(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid request id", http.StatusBadRequest)
+		redirectToServices(w, r)
 		return
 	}
 
 	request, err := h.repo.GetRequestByID(demoUserID, uint(id))
 	if err != nil {
 		if errors.Is(err, repository.ErrRequestNotFound) || errors.Is(err, repository.ErrRequestDeleted) {
-			http.Error(w, "request not found", http.StatusNotFound)
+			redirectToServices(w, r)
 			return
 		}
 		http.Error(w, "request unavailable", http.StatusInternalServerError)
 		return
 	}
 
-	displayPaO2 := request.BloodValuePaO2
-	displayFiO2 := request.FiO2Value
-	coefficient := request.MMCoefficient
 	diagnosisLabel := safeString(request.DiagnosisLabel)
-	calcError := ""
 	mmComment := safeString(request.MMComment)
-
-	rawPaO2 := strings.TrimSpace(r.URL.Query().Get("pao2"))
-	rawFiO2 := strings.TrimSpace(r.URL.Query().Get("fio2"))
-	hasCalculatorInput := rawPaO2 != "" || rawFiO2 != ""
-
-	if hasCalculatorInput {
-		paO2, paErr := parsePositiveFloat(rawPaO2)
-		fiO2, fiErr := parsePositiveFloat(rawFiO2)
-		if paErr != nil || fiErr != nil {
-			calcError = "Для расчета введите числовые значения PaO2 и FiO2."
-		} else {
-			displayPaO2 = &paO2
-			displayFiO2 = &fiO2
-			if value, ok := repository.CalculateOxygenationIndex(paO2, fiO2); ok {
-				coefficient = &value
-				diagnosisLabel = repository.DiagnosisByOxygenationIndex(value)
-			} else {
-				calcError = "FiO2 должна быть больше 0."
-			}
-		}
-	} else if displayPaO2 != nil && displayFiO2 != nil {
-		if value, ok := repository.CalculateOxygenationIndex(*displayPaO2, *displayFiO2); ok {
-			coefficient = &value
-			diagnosisLabel = repository.DiagnosisByOxygenationIndex(value)
-		}
-	}
-
 	if shouldUseGeneratedDoctorOpinion(mmComment) || mmComment == "-" {
 		mmComment = defaultRequestComment()
 	}
@@ -200,16 +168,13 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 		Request: requestView{
 			ID:             request.ID,
 			PatientName:    safeString(request.PatientName),
-			BloodValuePaO2: formatPaO2(displayPaO2),
-			FiO2Value:      formatFiO2(displayFiO2),
-			PaO2Input:      resolveInputValue(rawPaO2, displayPaO2, 1),
-			FiO2Input:      resolveInputValue(rawFiO2, displayFiO2, 2),
-			MMCoefficient:  formatCoefficient(coefficient),
+			BloodValuePaO2: formatPaO2(request.BloodValuePaO2),
+			FiO2Value:      formatFiO2(request.FiO2Value),
+			MMCoefficient:  formatCoefficient(request.MMCoefficient),
 			DiagnosisLabel: diagnosisLabel,
 			MMComment:      mmComment,
 		},
-		Rows:             rows,
-		CalculationError: calcError,
+		Rows: rows,
 	}
 
 	renderTemplate(w, "request.html", data)
@@ -217,20 +182,20 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AddServiceToDraft(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		redirectToServices(w, r)
 		return
 	}
 
 	serviceID, err := strconv.ParseUint(r.FormValue("service_id"), 10, 64)
 	if err != nil || serviceID == 0 {
-		http.Error(w, "invalid service id", http.StatusBadRequest)
+		redirectToServices(w, r)
 		return
 	}
 
 	_, err = h.repo.AddServiceToDraft(demoUserID, uint(serviceID))
 	if err != nil {
 		if errors.Is(err, repository.ErrServiceNotFound) {
-			http.Error(w, "service not found", http.StatusNotFound)
+			redirectToServices(w, r)
 			return
 		}
 		http.Error(w, "cannot add service", http.StatusInternalServerError)
@@ -243,13 +208,13 @@ func (h *Handler) AddServiceToDraft(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteRequest(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid request id", http.StatusBadRequest)
+		redirectToServices(w, r)
 		return
 	}
 
 	if err := h.repo.SoftDeleteDraftBySQL(demoUserID, uint(id)); err != nil {
 		if errors.Is(err, repository.ErrRequestNotFound) {
-			http.Error(w, "request not found", http.StatusNotFound)
+			redirectToServices(w, r)
 			return
 		}
 		http.Error(w, "cannot delete request", http.StatusInternalServerError)
@@ -299,28 +264,6 @@ func formatCoefficient(value *float64) string {
 		return "-"
 	}
 	return strconv.FormatFloat(*value, 'f', 1, 64)
-}
-
-func parsePositiveFloat(raw string) (float64, error) {
-	normalized := strings.ReplaceAll(strings.TrimSpace(raw), ",", ".")
-	value, err := strconv.ParseFloat(normalized, 64)
-	if err != nil {
-		return 0, err
-	}
-	if value <= 0 {
-		return 0, errors.New("value must be positive")
-	}
-	return value, nil
-}
-
-func resolveInputValue(raw string, value *float64, precision int) string {
-	if strings.TrimSpace(raw) != "" {
-		return strings.TrimSpace(raw)
-	}
-	if value == nil {
-		return ""
-	}
-	return strconv.FormatFloat(*value, 'f', precision, 64)
 }
 
 func defaultRequestComment() string {
@@ -453,6 +396,10 @@ func safeString(value *string) string {
 		return "-"
 	}
 	return *value
+}
+
+func redirectToServices(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/services", http.StatusSeeOther)
 }
 
 func renderTemplate(w http.ResponseWriter, templateName string, data any) {

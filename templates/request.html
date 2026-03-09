@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Последний расчет | Степени оксигенации</title>
+    <title>Заявка oxygenation_request | Степени оксигенации</title>
     <link rel="stylesheet" href="/static/styles/style.css?v=20260223-1">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
 
     <main class="container">
         <section class="request-meta-card">
-            <h1 class="request-title-main">Последний расчет: {{.Request.PatientName}}</h1>
+            <h1 class="request-title-main">Пациент: {{.Request.PatientName}}</h1>
             <div class="request-meta-grid">
                 <div class="meta-item">
                     <span class="meta-label">PaO2</span>
@@ -23,33 +23,18 @@
                     <span class="meta-value">{{.Request.FiO2Value}}</span>
                 </div>
                 <div class="meta-item">
-                    <span class="meta-label">ID заявки</span>
+                    <span class="meta-label">ID oxygenation_request</span>
                     <span class="meta-value">{{.Request.ID}}</span>
                 </div>
                 <div class="meta-item">
-                    <span class="meta-label">Текущая степень по индексу</span>
+                    <span class="meta-label">Текущая степень</span>
                     <span class="meta-value">{{.Request.DiagnosisLabel}}</span>
                 </div>
             </div>
         </section>
 
         <section class="mm-result-box">
-            <h2>Результат</h2>
-            <p class="calc-formula">Формула: PaO2 / FiO2</p>
-            <form action="/requests/{{.Request.ID}}" method="GET" class="calc-form">
-                <label class="calc-field">
-                    <span>PaO2</span>
-                    <input type="text" name="pao2" value="{{.Request.PaO2Input}}" placeholder="например 85.5">
-                </label>
-                <label class="calc-field">
-                    <span>FiO2</span>
-                    <input type="text" name="fio2" value="{{.Request.FiO2Input}}" placeholder="например 0.60">
-                </label>
-                <button type="submit" class="btn-add btn-calc">Рассчитать</button>
-            </form>
-            {{if .CalculationError}}
-            <p class="calc-error">{{.CalculationError}}</p>
-            {{end}}
+            <h2>Текущий результат</h2>
             <div class="mm-result-row">
                 <span class="mm-label">Индекс оксигенации:</span>
                 <span class="mm-value">{{.Request.MMCoefficient}}</span>
@@ -59,7 +44,7 @@
                 <span class="mm-value">{{.Request.DiagnosisLabel}}</span>
             </div>
             <p class="mm-comment">Комментарий врача: {{.Request.MMComment}}</p>
-            <form action="/requests/{{.Request.ID}}/delete" method="POST" class="request-delete-form">
+            <form action="/oxygenation_request/{{.Request.ID}}/delete" method="POST" class="request-delete-form">
                 <button type="submit" class="btn-delete-request">Удалить</button>
             </form>
         </section>

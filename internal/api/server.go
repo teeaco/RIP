@@ -28,15 +28,19 @@ func StartServer() {
 	h := handler.NewHandler(repo)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/services", http.StatusFound)
-	})
 
 	mux.HandleFunc("GET /services", h.GetServices)
+	mux.HandleFunc("GET /services/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/services", http.StatusFound)
+	})
 	mux.HandleFunc("GET /services/{id}", h.GetServiceDetail)
-	mux.HandleFunc("GET /requests/{id}", h.GetRequest)
-	mux.HandleFunc("POST /requests/add-service", h.AddServiceToDraft)
-	mux.HandleFunc("POST /requests/{id}/delete", h.DeleteRequest)
+	mux.HandleFunc("GET /oxygenation_request/{id}", h.GetRequest)
+	mux.HandleFunc("POST /oxygenation_request/add-service", h.AddServiceToDraft)
+	mux.HandleFunc("POST /oxygenation_request/{id}/delete", h.DeleteRequest)
+
+	mux.HandleFunc("GET /{path...}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/services", http.StatusFound)
+	})
 
 	staticFS := http.FileServer(http.Dir(resolveProjectPath("resources")))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(staticFS)))

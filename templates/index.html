@@ -12,12 +12,11 @@
 
     <div class="top-tools">
         {{if .HasDraft}}
-        <a href="/requests/{{.RequestID}}" class="cart-icon-link" aria-label="Открыть заявку #{{.RequestID}}" data-request-id="{{.RequestID}}" data-cart-count="{{.CartCount}}">
+        <a href="/oxygenation_request/{{.RequestID}}" class="cart-icon-link" aria-label="Открыть заявку #{{.RequestID}}" data-request-id="{{.RequestID}}" data-cart-count="{{.CartCount}}">
             <span class="cart-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
-                    <path d="M3 5h2l1.1 8.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L20 8H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="10" cy="19" r="1.5" fill="currentColor"/>
-                    <circle cx="17" cy="19" r="1.5" fill="currentColor"/>
+                    <path d="M12 3.5c-2.8 4.2-6 7.3-6 10.6A6 6 0 0 0 12 20a6 6 0 0 0 6-5.9c0-3.3-3.2-6.4-6-10.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path d="M9 13.2h1.7l1.1-2 1.2 3 1-1.6H15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </span>
             <span class="cart-badge">{{.CartCount}}</span>
@@ -26,9 +25,8 @@
         <span class="cart-icon-link cart-icon-link-disabled" aria-disabled="true" title="Черновик появится после добавления услуги">
             <span class="cart-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
-                    <path d="M3 5h2l1.1 8.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L20 8H7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="10" cy="19" r="1.5" fill="currentColor"/>
-                    <circle cx="17" cy="19" r="1.5" fill="currentColor"/>
+                    <path d="M12 3.5c-2.8 4.2-6 7.3-6 10.6A6 6 0 0 0 12 20a6 6 0 0 0 6-5.9c0-3.3-3.2-6.4-6-10.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path d="M9 13.2h1.7l1.1-2 1.2 3 1-1.6H15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </span>
             <span class="cart-badge">0</span>
@@ -38,6 +36,7 @@
 
     <form action="/services" method="GET" class="search-container">
         <input type="text" name="query" class="search-input" placeholder="Поиск..." value="{{.Query}}">
+        <button type="submit" class="search-btn">Поиск</button>
     </form>
 
     <main class="container">
@@ -56,7 +55,7 @@
                         <p class="card-desc">{{.Description}}</p>
                     </div>
                 </a>
-                <form action="/requests/add-service" method="POST" class="card-action">
+                <form action="/oxygenation_request/add-service" method="POST" class="card-action">
                     <input type="hidden" name="service_id" value="{{.ID}}">
                     <input type="hidden" name="return_to" value="/services{{if $.Query}}?query={{$.Query}}{{end}}">
                     <button type="submit" class="btn-add">Добавить</button>

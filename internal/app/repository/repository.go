@@ -428,7 +428,6 @@ func (r *Repository) GetRequestByID(userID, requestID uint) (OxygenationRequest,
 		return OxygenationRequest{}, ErrRequestDeleted
 	}
 
-	request.MMCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
 	return request, nil
 }
 
