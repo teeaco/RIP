@@ -2,9 +2,11 @@ package api
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -46,17 +48,41 @@ func StartServer() {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(staticFS)))
 
 	port := envOrDefault("APP_PORT", "8080")
+	fallbackPort := envOrDefault("APP_FALLBACK_PORT", "8095")
+	listener, err := listenWithFallback(port, fallbackPort)
+	if err != nil {
+		log.Fatalf("server failed: %v", err)
+	}
+	activePort := port
+	if listener.Addr() != nil {
+		if tcpAddr, ok := listener.Addr().(*net.TCPAddr); ok && tcpAddr.Port > 0 {
+			activePort = strconv.Itoa(tcpAddr.Port)
+		}
+	}
 
 	server := &http.Server{
-		Addr:              ":" + port,
 		Handler:           loggingMiddleware(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Printf("server started at http://localhost:%s", port)
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	log.Printf("server started at http://localhost:%s", activePort)
+	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("server failed: %v", err)
 	}
+}
+
+func listenWithFallback(primaryPort, fallbackPort string) (net.Listener, error) {
+	listener, err := net.Listen("tcp", ":"+primaryPort)
+	if err == nil {
+		return listener, nil
+	}
+
+	if primaryPort == "8080" && strings.TrimSpace(fallbackPort) != "" {
+		log.Printf("port 8080 is busy, trying %s", fallbackPort)
+		return net.Listen("tcp", ":"+fallbackPort)
+	}
+
+	return nil, err
 }
 
 func envOrDefault(key, fallback string) string {
