@@ -10,19 +10,23 @@
 <body class="portrait-mode">
     {{template "header" .}}
 
-    <video autoplay muted loop class="background-video">
-        <source src="{{.Service.VideoURL}}" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-    </video>
+    <main class="container detail-page">
+        <section class="detail-hero-card">
+            <video autoplay muted loop playsinline class="detail-hero-video">
+                <source src="{{.Service.VideoURL}}" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
+            <div class="detail-hero-overlay">
+                <h1 class="detail-title">{{.Service.Name}}</h1>
+                <p class="detail-index">{{.Service.Benchmark}}</p>
+                <p class="detail-hero-caption">{{.Service.ShortDescription}}</p>
+            </div>
+        </section>
 
-    <div class="content-container">
-        <div class="content-wrapper">
+        <section class="content-wrapper detail-info-card">
             <div class="detail-preview">
                 <img src="{{.Service.ImageURL}}" alt="{{.Service.Name}}">
             </div>
-
-            <h1 class="detail-title">{{.Service.Name}}</h1>
-            <p class="detail-index">{{.Service.Benchmark}}</p>
 
             <div class="detail-section">
                 <h2 class="section-title">Описание</h2>
@@ -46,7 +50,7 @@
                     {{end}}
                 </ul>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 </body>
 </html>
