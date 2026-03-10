@@ -19,7 +19,7 @@ import (
 func StartServer() {
 	repo, err := repository.NewRepository(repository.Config{
 		Host:     envOrDefault("DB_HOST", "127.0.0.1"),
-		Port:     envOrDefault("DB_PORT", "55432"),
+		Port:     envOrDefault("DB_PORT", "55632"),
 		User:     envOrDefault("DB_USER", "root"),
 		Password: envOrDefault("DB_PASSWORD", "root"),
 		DBName:   envOrDefault("DB_NAME", "RIP"),
@@ -69,8 +69,8 @@ func StartServer() {
 	staticFS := http.FileServer(http.Dir(resolveProjectPath("resources")))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", noCache(staticFS)))
 
-	port := envOrDefault("APP_PORT", "8080")
-	fallbackPort := envOrDefault("APP_FALLBACK_PORT", "8095")
+	port := envOrDefault("APP_PORT", "8095")
+	fallbackPort := envOrDefault("APP_FALLBACK_PORT", "8096")
 	listener, err := listenWithFallback(port, fallbackPort)
 	if err != nil {
 		log.Fatalf("server failed: %v", err)
@@ -94,17 +94,36 @@ func StartServer() {
 }
 
 func listenWithFallback(primaryPort, fallbackPort string) (net.Listener, error) {
+	if hasTCPListener(primaryPort) && strings.TrimSpace(fallbackPort) != "" {
+		log.Printf("port %s is already in use, trying %s", primaryPort, fallbackPort)
+		return net.Listen("tcp", ":"+fallbackPort)
+	}
+
 	listener, err := net.Listen("tcp", ":"+primaryPort)
 	if err == nil {
 		return listener, nil
 	}
 
-	if primaryPort == "8080" && strings.TrimSpace(fallbackPort) != "" {
-		log.Printf("port 8080 is busy, trying %s", fallbackPort)
+	if strings.TrimSpace(fallbackPort) != "" {
+		log.Printf("cannot bind %s, trying %s", primaryPort, fallbackPort)
 		return net.Listen("tcp", ":"+fallbackPort)
 	}
 
 	return nil, err
+}
+
+func hasTCPListener(port string) bool {
+	port = strings.TrimSpace(port)
+	if port == "" {
+		return false
+	}
+
+	conn, err := net.DialTimeout("tcp", "127.0.0.1:"+port, 300*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	_ = conn.Close()
+	return true
 }
 
 func envOrDefault(key, fallback string) string {

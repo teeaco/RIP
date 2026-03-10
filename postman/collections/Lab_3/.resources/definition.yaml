@@ -1,0 +1,4 @@
+$kind: collection
+name: Lab_3
+variables:
+  new_login: ""

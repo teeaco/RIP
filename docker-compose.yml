@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: RIP
     ports:
-      - "55432:5432"
+      - "55632:5432"
     volumes:
       - postgresdb-data:/var/lib/postgresql/data
     healthcheck:

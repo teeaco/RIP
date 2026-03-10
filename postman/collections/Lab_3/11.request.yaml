@@ -1,0 +1,10 @@
+$kind: http-request
+name: "11"
+url: "{{base_url}}/oxygenation_request/{{request_id}}"
+method: PUT
+body:
+  type: json
+  content: "{\"patient_name\":\"Иванов
+    И.И.\",\"blood_value_pao2\":90.1,\"fio2_value\":0.5,\"mm_comment\":\"Обновл\
+    ено перед формированием\"}\r\n"
+order: 4193694993320978

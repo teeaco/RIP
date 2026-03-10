@@ -1,0 +1,10 @@
+$kind: http-request
+name: "1"
+url: "{{base_url}}/oxygenation_request?status=completed&formed_at=2026-03-09&co\
+  mpleted_at=2026-03-09"
+method: GET
+queryParams:
+  status: completed
+  formed_at: 2026-03-09
+  completed_at: 2026-03-09
+order: 3000

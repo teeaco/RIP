@@ -1,0 +1,15 @@
+$kind: http-request
+name: "1"
+url: "{{base_url}}/oxygenation_request"
+method: GET
+queryParams:
+  - key: status
+    value: completed
+    disabled: true
+  - key: formed_at
+    value: 2026-01-01
+    disabled: true
+  - key: completed_at
+    value: 2026-12-31
+    disabled: true
+order: 2000

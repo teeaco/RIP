@@ -1,0 +1,8 @@
+$kind: http-request
+name: "6"
+url: "{{base_url}}/request-services"
+method: POST
+body:
+  type: json
+  content: "{\"service_id\":1}\r\n"
+order: 7136

@@ -1,0 +1,8 @@
+$kind: http-request
+name: "10"
+url: "{{base_url}}/request-services/{{request_id}}/1"
+method: PUT
+body:
+  type: json
+  content: "{\"quantity\":2,\"doctor_comment\":\"Контроль через 4 часа\"}\r\n"
+order: 3681161301221121

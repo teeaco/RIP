@@ -1,0 +1,5 @@
+$kind: http-request
+name: "3"
+url: "{{base_url}}/oxygenation_request/{{draft_id}}"
+method: DELETE
+order: 5000

@@ -1,0 +1,5 @@
+$kind: http-request
+name: "9"
+url: "{{base_url}}/oxygenation_request/{{request_id}}"
+method: GET
+order: 3550204837997479

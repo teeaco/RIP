@@ -1,0 +1,7 @@
+$kind: http-request
+name: "4"
+url: "{{base_url}}/services?query=ДН"
+method: GET
+queryParams:
+  query: ДН
+order: 6000
