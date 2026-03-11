@@ -17,7 +17,7 @@ import (
 func StartServer() {
 	repo, err := repository.NewRepository(repository.Config{
 		Host:     envOrDefault("DB_HOST", "127.0.0.1"),
-		Port:     envOrDefault("DB_PORT", "55432"),
+		Port:     envOrDefault("DB_PORT", "55632"),
 		User:     envOrDefault("DB_USER", "root"),
 		Password: envOrDefault("DB_PASSWORD", "root"),
 		DBName:   envOrDefault("DB_NAME", "RIP"),

@@ -1,57 +1,69 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Service.Name}} | Карточка услуги</title>
-    <link rel="stylesheet" href="/static/styles/style.css?v=20260223-1">
+    <link rel="stylesheet" href="/static/styles/style.css?v=20260311-1">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="portrait-mode">
     {{template "header" .}}
 
-    <video autoplay muted loop class="background-video">
-        <source src="{{.Service.VideoURL}}" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-    </video>
+    <main class="container detail-page">
+        <section class="media-overlay-card media-overlay-card-compact">
+            {{if .Service.VideoURL}}
+            <video autoplay muted loop playsinline class="media-overlay-bg">
+                <source src="{{.Service.VideoURL}}" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
+            {{else if .Service.ImageURL}}
+            <img class="media-overlay-bg" src="{{.Service.ImageURL}}" alt="{{.Service.Name}}">
+            {{else}}
+            <div class="media-overlay-bg media-overlay-bg-empty">Видео и изображение отсутствуют</div>
+            {{end}}
 
-    <div class="content-container">
-        <div class="content-wrapper">
-            <div class="detail-preview">
-                <img src="{{.Service.ImageURL}}" alt="{{.Service.Name}}">
+            <div class="media-overlay-scrim"></div>
+
+            <div class="media-overlay-content">
+                <div class="media-overlay-head">
+                    <h1 class="media-overlay-title">{{.Service.Name}}</h1>
+                    <p class="media-overlay-index">{{.Service.Benchmark}}</p>
+                    <p class="media-overlay-desc">{{.Service.Description}}</p>
+                </div>
+
+                <div class="media-overlay-grid">
+                    <div class="overlay-block">
+                        <h2 class="overlay-block-title">Клинические признаки</h2>
+                        <ul class="overlay-list">
+                            {{range .Signs}}
+                            <li>{{.}}</li>
+                            {{else}}
+                            <li>Нет данных</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                    <div class="overlay-block">
+                        <h2 class="overlay-block-title">Рекомендации врача</h2>
+                        <ul class="overlay-list">
+                            {{range .Recs}}
+                            <li>{{.}}</li>
+                            {{else}}
+                            <li>Нет данных</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="media-overlay-actions">
+                    <form action="/oxygenation_request/add-service" method="POST" class="detail-add-form">
+                        <input type="hidden" name="service_id" value="{{.Service.ID}}">
+                        <input type="hidden" name="return_to" value="/services/{{.Service.ID}}">
+                        <button type="submit" class="btn-add btn-add-detail">Добавить</button>
+                    </form>
+                </div>
             </div>
-
-            <h1 class="detail-title">{{.Service.Name}}</h1>
-            <p class="detail-index">{{.Service.Benchmark}}</p>
-            <form action="/oxygenation_request/add-service" method="POST" class="detail-add-form">
-                <input type="hidden" name="service_id" value="{{.Service.ID}}">
-                <input type="hidden" name="return_to" value="/services/{{.Service.ID}}">
-                <button type="submit" class="btn-add btn-add-detail">Добавить</button>
-            </form>
-
-            <div class="detail-section">
-                <h2 class="section-title">Описание</h2>
-                <p class="detail-text">{{.Service.Description}}</p>
-            </div>
-
-            <div class="detail-section">
-                <h2 class="section-title">Клинические признаки</h2>
-                <ul class="detail-list">
-                    {{range .Signs}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
-            </div>
-
-            <div class="detail-section">
-                <h2 class="section-title">Рекомендации</h2>
-                <ul class="detail-list">
-                    {{range .Recs}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
-            </div>
-        </div>
-    </div>
+        </section>
+    </main>
 </body>
 </html>
