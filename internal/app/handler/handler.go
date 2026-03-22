@@ -33,9 +33,9 @@ type indexPageData struct {
 }
 
 type detailPageData struct {
-	Service repository.Service
-	Signs   []string
-	Recs    []string
+	Service      repository.Service
+	ShortText    string
+	DoctorAdvice string
 }
 
 type requestPageData struct {
@@ -81,9 +81,9 @@ func (h *Handler) GetServiceDetail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := detailPageData{
-		Service: service,
-		Signs:   splitBySemicolon(service.ClinicalSigns),
-		Recs:    splitBySemicolon(service.Recommendations),
+		Service:      service,
+		ShortText:    service.ShortDescription,
+		DoctorAdvice: doctorAdvice(service),
 	}
 
 	renderTemplate(w, "detail.html", data)
@@ -140,6 +140,14 @@ func splitBySemicolon(text string) []string {
 		}
 	}
 	return result
+}
+
+func doctorAdvice(service repository.Service) string {
+	if service.ID == 1 {
+		return "Не идти к врачу"
+	}
+
+	return "Идти к врачу"
 }
 
 func renderTemplate(w http.ResponseWriter, templateName string, data any) {
