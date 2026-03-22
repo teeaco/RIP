@@ -159,10 +159,72 @@ func (r *Repository) migrate() error {
 		return err
 	}
 
+	if err := r.cleanupLegacySchema(); err != nil {
+		return err
+	}
+
 	if err := r.db.Exec(`
 		CREATE UNIQUE INDEX IF NOT EXISTS ux_single_draft_request
 		ON oxygenation_requests (creator_id)
 		WHERE status = 'draft'
+	`).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) cleanupLegacySchema() error {
+	legacyCleanup := []string{
+		`ALTER TABLE oxygenation_services DROP COLUMN IF EXISTS clinical_signs`,
+		`ALTER TABLE oxygenation_services DROP COLUMN IF EXISTS recommendations`,
+		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS mm_coefficient`,
+		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS diagnosis_label`,
+		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS mm_comment`,
+		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS doctor_comment`,
+		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS created_at`,
+		`DROP INDEX IF EXISTS ux_request_service_unique`,
+	}
+
+	for _, query := range legacyCleanup {
+		if err := r.db.Exec(query).Error; err != nil {
+			return err
+		}
+	}
+
+	if err := r.db.Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1
+				FROM information_schema.columns
+				WHERE table_schema = 'public'
+					AND table_name = 'oxygenation_request_services'
+					AND column_name = 'id'
+			) THEN
+				ALTER TABLE public.oxygenation_request_services
+					DROP CONSTRAINT IF EXISTS oxygenation_request_services_pkey;
+				ALTER TABLE public.oxygenation_request_services DROP COLUMN id;
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return err
+	}
+
+	if err := r.db.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1
+				FROM pg_constraint
+				WHERE conname = 'oxygenation_request_services_pkey'
+					AND conrelid = 'public.oxygenation_request_services'::regclass
+					AND contype = 'p'
+			) THEN
+				ALTER TABLE public.oxygenation_request_services
+					ADD CONSTRAINT oxygenation_request_services_pkey PRIMARY KEY (request_id, service_id);
+			END IF;
+		END $$;
 	`).Error; err != nil {
 		return err
 	}
