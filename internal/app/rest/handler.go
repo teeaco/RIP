@@ -76,19 +76,19 @@ type requestServiceResponse struct {
 
 type requestResponse struct {
 	ID               uint                     `json:"id"`
-	Status           string                   `json:"status"`
 	CreatedAt        string                   `json:"created_at"`
 	FormedAt         string                   `json:"formed_at,omitempty"`
 	CompletedAt      string                   `json:"completed_at,omitempty"`
 	CreatorLogin     string                   `json:"creator_login,omitempty"`
 	ModeratorLogin   string                   `json:"moderator_login,omitempty"`
-	PatientName      string                   `json:"patient_name,omitempty"`
+	PatientName      string                   `json:"patient_name"`
 	BloodValuePaO2   any                      `json:"blood_value_pao2"`
 	FiO2Value        any                      `json:"fio2_value"`
 	MMCoefficient    any                      `json:"mm_coefficient"`
-	DiagnosisLabel   string                   `json:"diagnosis_label,omitempty"`
-	MMComment        string                   `json:"mm_comment,omitempty"`
-	CalculatedMMRows int                      `json:"calculated_mm_rows,omitempty"`
+	Result           string                   `json:"result"`
+	DiagnosisLabel   string                   `json:"diagnosis_label"`
+	MMComment        string                   `json:"mm_comment"`
+	ResultsCount     int                      `json:"results_count"`
 	Items            []requestServiceResponse `json:"items,omitempty"`
 }
 
@@ -315,7 +315,7 @@ func (h *Handler) ListRequests(w http.ResponseWriter, r *http.Request) {
 
 	out := make([]requestResponse, 0, len(items))
 	for _, item := range items {
-		out = append(out, serializeRequest(item.Request, item.CreatorLogin, item.ModeratorLogin, item.CalculatedMMRows, false))
+		out = append(out, serializeRequest(item.Request, item.CreatorLogin, item.ModeratorLogin, item.ResultsCount, false))
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"items": out})
@@ -606,10 +606,11 @@ func serializeRequestService(item repository.RequestService) requestServiceRespo
 	}
 }
 
-func serializeRequest(request repository.OxygenationRequest, creatorLogin string, moderatorLogin *string, calculatedMMRows int, withItems bool) requestResponse {
+func serializeRequest(request repository.OxygenationRequest, creatorLogin string, moderatorLogin *string, resultsCount int, withItems bool) requestResponse {
+	diagnosisLabel := nullableStringToValue(request.DiagnosisLabel)
+
 	response := requestResponse{
 		ID:               request.ID,
-		Status:           string(request.Status),
 		CreatedAt:        request.CreatedAt.Format(time.RFC3339),
 		FormedAt:         nullableTimeToValue(request.FormedAt),
 		CompletedAt:      nullableTimeToValue(request.CompletedAt),
@@ -619,9 +620,10 @@ func serializeRequest(request repository.OxygenationRequest, creatorLogin string
 		BloodValuePaO2:   nullableFloatToAny(request.BloodValuePaO2),
 		FiO2Value:        nullableFloatToAny(request.FiO2Value),
 		MMCoefficient:    nullableFloatToAny(request.MMCoefficient),
-		DiagnosisLabel:   nullableStringToValue(request.DiagnosisLabel),
+		Result:           resolveResultLabel(request.DiagnosisLabel),
+		DiagnosisLabel:   diagnosisLabel,
 		MMComment:        nullableStringToValue(request.MMComment),
-		CalculatedMMRows: calculatedMMRows,
+		ResultsCount:     resultsCount,
 	}
 
 	if withItems {
@@ -629,9 +631,28 @@ func serializeRequest(request repository.OxygenationRequest, creatorLogin string
 		for _, item := range request.Items {
 			response.Items = append(response.Items, serializeRequestService(item))
 		}
+		response.ResultsCount = countNonEmptyResults(request.Items)
 	}
 
 	return response
+}
+
+func resolveResultLabel(diagnosisLabel *string) string {
+	label := strings.TrimSpace(nullableStringToValue(diagnosisLabel))
+	if label == "" {
+		return "не рассчитан"
+	}
+	return label
+}
+
+func countNonEmptyResults(items []repository.RequestService) int {
+	count := 0
+	for _, item := range items {
+		if strings.TrimSpace(nullableStringToValue(item.DoctorComment)) != "" {
+			count++
+		}
+	}
+	return count
 }
 
 func decodeJSON(r *http.Request, target any) error {

@@ -45,7 +45,7 @@ type RequestListItem struct {
 	Request          OxygenationRequest
 	CreatorLogin     string
 	ModeratorLogin   *string
-	CalculatedMMRows int
+	ResultsCount     int
 }
 
 func (r *Repository) CreateService(input ServiceCreateInput) (OxygenationService, error) {
@@ -140,7 +140,7 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 			Request:          request,
 			CreatorLogin:     request.Creator.Login,
 			ModeratorLogin:   moderatorLogin,
-			CalculatedMMRows: int(mmCount),
+			ResultsCount:     int(mmCount),
 		})
 	}
 

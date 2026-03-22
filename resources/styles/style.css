@@ -623,6 +623,11 @@ body {
     line-height: 1.4;
 }
 
+.service-media-field {
+    flex-direction: column;
+    gap: 6px;
+}
+
 .service-thumb {
     width: 72px;
     height: 72px;
@@ -630,6 +635,18 @@ body {
     border-radius: 10px;
     border: 1px solid #e0e0e0;
     background: #ffffff;
+}
+
+.service-media-link {
+    color: #6f58c2;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.service-media-link:hover {
+    text-decoration: underline;
 }
 
 .service-link {
