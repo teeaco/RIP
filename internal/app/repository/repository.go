@@ -80,16 +80,14 @@ func (User) TableName() string {
 }
 
 type OxygenationService struct {
-	ID              uint          `gorm:"primaryKey"`
-	Name            string        `gorm:"size:140;not null"`
-	Description     string        `gorm:"type:text;not null"`
-	Status          ServiceStatus `gorm:"type:varchar(16);not null;default:'active';index"`
-	ImageURL        *string       `gorm:"type:text"`
-	VideoURL        *string       `gorm:"type:text"`
-	Benchmark       string        `gorm:"size:120;not null"`
-	ClinicalSigns   string        `gorm:"type:text"`
-	Recommendations string        `gorm:"type:text"`
-	CreatedAt       time.Time     `gorm:"not null"`
+	ID          uint          `gorm:"primaryKey"`
+	Name        string        `gorm:"size:140;not null"`
+	Description string        `gorm:"type:text;not null"`
+	Status      ServiceStatus `gorm:"type:varchar(16);not null;default:'active';index"`
+	ImageURL    *string       `gorm:"type:text"`
+	VideoURL    *string       `gorm:"type:text"`
+	Benchmark   string        `gorm:"size:120;not null"`
+	CreatedAt   time.Time     `gorm:"not null"`
 }
 
 func (OxygenationService) TableName() string {
@@ -109,9 +107,6 @@ type OxygenationRequest struct {
 	PatientName    *string `gorm:"size:120"`
 	BloodValuePaO2 *float64
 	FiO2Value      *float64
-	MMCoefficient  *float64
-	DiagnosisLabel *string          `gorm:"size:140"`
-	MMComment      *string          `gorm:"type:text"`
 	Items          []RequestService `gorm:"foreignKey:RequestID"`
 }
 
@@ -120,16 +115,14 @@ func (OxygenationRequest) TableName() string {
 }
 
 type RequestService struct {
-	ID            uint               `gorm:"primaryKey"`
-	RequestID     uint               `gorm:"not null;index;uniqueIndex:ux_request_service_unique"`
-	ServiceID     uint               `gorm:"not null;index;uniqueIndex:ux_request_service_unique"`
-	Quantity      int                `gorm:"not null;default:1"`
-	Position      int                `gorm:"not null;default:1"`
-	IsPrimary     bool               `gorm:"not null;default:false"`
-	DoctorComment *string            `gorm:"type:text"`
-	CreatedAt     time.Time          `gorm:"not null"`
-	Request       OxygenationRequest `gorm:"foreignKey:RequestID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-	Service       OxygenationService `gorm:"foreignKey:ServiceID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+	RequestID         uint `gorm:"primaryKey;not null;index"`
+	ServiceID         uint `gorm:"primaryKey;not null;index"`
+	Quantity          int  `gorm:"not null;default:1"`
+	Position          int  `gorm:"not null;default:1"`
+	IsPrimary         bool `gorm:"not null;default:false"`
+	ResultCoefficient *float64
+	Request           OxygenationRequest `gorm:"foreignKey:RequestID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+	Service           OxygenationService `gorm:"foreignKey:ServiceID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 }
 
 func (RequestService) TableName() string {
@@ -177,13 +170,6 @@ func (r *Repository) migrate() error {
 		return err
 	}
 
-	if err := r.db.Exec(`
-		CREATE UNIQUE INDEX IF NOT EXISTS ux_request_service_unique
-		ON oxygenation_request_services (request_id, service_id)
-	`).Error; err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -223,48 +209,40 @@ func (r *Repository) seed() error {
 
 	services := []OxygenationService{
 		{
-			Name:            "Нормальная оксигенация",
-			Description:     "Нормальный газообмен.",
-			Status:          ServiceStatusActive,
-			ImageURL:        strPtr("http://localhost:9000/images/normal.png"),
-			VideoURL:        strPtr("http://localhost:9000/images/normal.mp4"),
-			Benchmark:       "PaO2/FiO2 > 300 мм рт.ст.",
-			ClinicalSigns:   "Одышки нет; SpO2 обычно > 95%; стабильные газы крови.",
-			Recommendations: "Наблюдение в динамике; контроль сатурации и общего состояния.",
-			CreatedAt:       now,
+			Name:        "Нормальная оксигенация",
+			Description: "Нормальный газообмен.",
+			Status:      ServiceStatusActive,
+			ImageURL:    strPtr("http://localhost:9000/images/normal.png"),
+			VideoURL:    strPtr("http://localhost:9000/images/normal.mp4"),
+			Benchmark:   "PaO2/FiO2 > 300 мм рт.ст.",
+			CreatedAt:   now,
 		},
 		{
-			Name:            "Легкая ДН",
-			Description:     "Легкая дыхательная недостаточность.",
-			Status:          ServiceStatusActive,
-			ImageURL:        strPtr("http://localhost:9000/images/mild.png"),
-			VideoURL:        strPtr("http://localhost:9000/images/mild.mp4"),
-			Benchmark:       "PaO2/FiO2 201-300 мм рт.ст.",
-			ClinicalSigns:   "Одышка при нагрузке; SpO2 90-94%; умеренная тахипноэ.",
-			Recommendations: "Кислородотерапия по показаниям; контроль газов крови в динамике.",
-			CreatedAt:       now,
+			Name:        "Легкая ДН",
+			Description: "Легкая дыхательная недостаточность.",
+			Status:      ServiceStatusActive,
+			ImageURL:    strPtr("http://localhost:9000/images/mild.png"),
+			VideoURL:    strPtr("http://localhost:9000/images/mild.mp4"),
+			Benchmark:   "PaO2/FiO2 201-300 мм рт.ст.",
+			CreatedAt:   now,
 		},
 		{
-			Name:            "Умеренная ДН (ОРДС)",
-			Description:     "Умеренная дыхательная недостаточность.",
-			Status:          ServiceStatusActive,
-			ImageURL:        strPtr("http://localhost:9000/images/moderate.png"),
-			VideoURL:        strPtr("http://localhost:9000/images/moderate.mp4"),
-			Benchmark:       "PaO2/FiO2 101-200 мм рт.ст.",
-			ClinicalSigns:   "Одышка в покое; SpO2 85-89%; тахипноэ более 20 в минуту.",
-			Recommendations: "Мониторинг газов крови каждые 4-6 часов; оценка необходимости NIV/ИВЛ.",
-			CreatedAt:       now,
+			Name:        "Умеренная ДН (ОРДС)",
+			Description: "Умеренная дыхательная недостаточность.",
+			Status:      ServiceStatusActive,
+			ImageURL:    strPtr("http://localhost:9000/images/moderate.png"),
+			VideoURL:    strPtr("http://localhost:9000/images/moderate.mp4"),
+			Benchmark:   "PaO2/FiO2 101-200 мм рт.ст.",
+			CreatedAt:   now,
 		},
 		{
-			Name:            "Тяжелая ДН (ОРДС)",
-			Description:     "Тяжелая дыхательная недостаточность.",
-			Status:          ServiceStatusActive,
-			ImageURL:        strPtr("http://localhost:9000/images/severe.png"),
-			VideoURL:        strPtr("http://localhost:9000/images/severe.mp4"),
-			Benchmark:       "PaO2/FiO2 <= 100 мм рт.ст.",
-			ClinicalSigns:   "Выраженная дыхательная недостаточность; SpO2 < 85%; признаки истощения дыхания.",
-			Recommendations: "Интенсивная терапия; инвазивная вентиляция по показаниям; круглосуточный мониторинг.",
-			CreatedAt:       now,
+			Name:        "Тяжелая ДН (ОРДС)",
+			Description: "Тяжелая дыхательная недостаточность.",
+			Status:      ServiceStatusActive,
+			ImageURL:    strPtr("http://localhost:9000/images/severe.png"),
+			VideoURL:    strPtr("http://localhost:9000/images/severe.mp4"),
+			Benchmark:   "PaO2/FiO2 <= 100 мм рт.ст.",
+			CreatedAt:   now,
 		},
 	}
 
@@ -361,7 +339,10 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			return err
 		}
 
-		doctorComment := BuildDoctorOpinion(service.Description, service.Recommendations)
+		resultCoefficient := calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
+		if err := tx.Model(&RequestService{}).Where("request_id = ?", request.ID).Update("result_coefficient", resultCoefficient).Error; err != nil {
+			return err
+		}
 
 		var item RequestService
 		err = tx.Where("request_id = ? AND service_id = ?", request.ID, serviceID).First(&item).Error
@@ -375,38 +356,28 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			}
 
 			item = RequestService{
-				RequestID:     request.ID,
-				ServiceID:     serviceID,
-				Quantity:      1,
-				Position:      int(maxPosition) + 1,
-				IsPrimary:     true,
-				DoctorComment: strPtr("По мнению врача: степень добавлена в черновик."),
-				CreatedAt:     time.Now().UTC(),
+				RequestID:         request.ID,
+				ServiceID:         serviceID,
+				Quantity:          1,
+				Position:          int(maxPosition) + 1,
+				IsPrimary:         true,
+				ResultCoefficient: resultCoefficient,
 			}
-			item.DoctorComment = strPtr(doctorComment)
 			if err := tx.Create(&item).Error; err != nil {
 				return err
 			}
 		} else if err != nil {
 			return err
 		} else {
-			item.Quantity++
-			item.IsPrimary = true
-			if item.DoctorComment == nil || strings.TrimSpace(*item.DoctorComment) == "" {
-				item.DoctorComment = strPtr("По мнению врача: количество степени изменено.")
-			}
-			item.DoctorComment = strPtr(doctorComment)
-			if err := tx.Save(&item).Error; err != nil {
+			if err := tx.Model(&RequestService{}).
+				Where("request_id = ? AND service_id = ?", request.ID, serviceID).
+				Updates(map[string]any{
+					"quantity":           item.Quantity + 1,
+					"is_primary":         true,
+					"result_coefficient": resultCoefficient,
+				}).Error; err != nil {
 				return err
 			}
-		}
-
-		request.DiagnosisLabel = strPtr(service.Name)
-		if request.MMComment == nil || strings.TrimSpace(*request.MMComment) == "" {
-			request.MMComment = strPtr(defaultRequestCommentText())
-		}
-		if err := tx.Save(&request).Error; err != nil {
-			return err
 		}
 
 		requestID = request.ID
@@ -458,19 +429,14 @@ func newDraftRequest(userID uint) OxygenationRequest {
 	now := time.Now().UTC()
 	patientName := "Иванов И.И."
 
-	request := OxygenationRequest{
+	return OxygenationRequest{
 		Status:         RequestStatusDraft,
 		CreatedAt:      now,
 		CreatorID:      userID,
 		PatientName:    &patientName,
 		BloodValuePaO2: nil,
 		FiO2Value:      nil,
-		DiagnosisLabel: nil,
-		MMComment:      strPtr("По мнению врача: черновик создан автоматически."),
 	}
-	request.MMComment = strPtr(defaultRequestCommentText())
-
-	return request
 }
 
 func calculateOxygenationIndex(paO2, fiO2 *float64) *float64 {
@@ -505,26 +471,6 @@ func DiagnosisByOxygenationIndex(index float64) string {
 		return "Умеренная ДН (ОРДС)"
 	default:
 		return "Тяжелая ДН (ОРДС)"
-	}
-}
-
-func defaultRequestCommentText() string {
-	return "Состояние средней тяжести. Рекомендован повторный контроль коэффициента через 6 часов."
-}
-
-func BuildDoctorOpinion(description, recommendations string) string {
-	description = strings.TrimSpace(description)
-	recommendations = strings.TrimSpace(recommendations)
-
-	switch {
-	case description != "" && recommendations != "":
-		return "По мнению врача: " + description + " Рекомендации: " + recommendations
-	case description != "":
-		return "По мнению врача: " + description
-	case recommendations != "":
-		return "По мнению врача: Рекомендации: " + recommendations
-	default:
-		return "По мнению врача: требуется дополнительная оценка состояния."
 	}
 }
 

@@ -12,27 +12,23 @@ import (
 )
 
 type ServiceCreateInput struct {
-	Name            string
-	Description     string
-	Benchmark       string
-	ClinicalSigns   string
-	Recommendations string
-	ImageURL        *string
-	VideoURL        *string
+	Name        string
+	Description string
+	Benchmark   string
+	ImageURL    *string
+	VideoURL    *string
 }
 
 type RequestServiceUpdateInput struct {
-	Quantity      *int
-	Position      *int
-	IsPrimary     *bool
-	DoctorComment *string
+	Quantity  *int
+	Position  *int
+	IsPrimary *bool
 }
 
 type RequestUpdateInput struct {
 	PatientName    *string
 	BloodValuePaO2 *float64
 	FiO2Value      *float64
-	MMComment      *string
 }
 
 type RequestListFilter struct {
@@ -42,10 +38,10 @@ type RequestListFilter struct {
 }
 
 type RequestListItem struct {
-	Request          OxygenationRequest
-	CreatorLogin     string
-	ModeratorLogin   *string
-	ResultsCount     int
+	Request        OxygenationRequest
+	CreatorLogin   string
+	ModeratorLogin *string
+	ResultsCount   int
 }
 
 func (r *Repository) CreateService(input ServiceCreateInput) (OxygenationService, error) {
@@ -57,15 +53,13 @@ func (r *Repository) CreateService(input ServiceCreateInput) (OxygenationService
 	}
 
 	service := OxygenationService{
-		Name:            name,
-		Description:     description,
-		Status:          ServiceStatusActive,
-		ImageURL:        normalizeNullableString(input.ImageURL),
-		VideoURL:        normalizeNullableString(input.VideoURL),
-		Benchmark:       benchmark,
-		ClinicalSigns:   strings.TrimSpace(input.ClinicalSigns),
-		Recommendations: strings.TrimSpace(input.Recommendations),
-		CreatedAt:       time.Now().UTC(),
+		Name:        name,
+		Description: description,
+		Status:      ServiceStatusActive,
+		ImageURL:    normalizeNullableString(input.ImageURL),
+		VideoURL:    normalizeNullableString(input.VideoURL),
+		Benchmark:   benchmark,
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	if err := r.db.Create(&service).Error; err != nil {
@@ -103,6 +97,10 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 	query := r.db.Model(&OxygenationRequest{}).
 		Preload("Creator").
 		Preload("Moderator").
+		Preload("Items", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position asc")
+		}).
+		Preload("Items.Service").
 		Where("status NOT IN ?", []RequestStatus{RequestStatusDraft, RequestStatusDeleted}).
 		Order("id desc")
 
@@ -123,10 +121,10 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 
 	items := make([]RequestListItem, 0, len(requests))
 	for _, request := range requests {
-		var mmCount int64
+		var resultsCount int64
 		if err := r.db.Model(&RequestService{}).
-			Where("request_id = ? AND COALESCE(NULLIF(BTRIM(doctor_comment), ''), '') <> ''", request.ID).
-			Count(&mmCount).Error; err != nil {
+			Where("request_id = ? AND result_coefficient IS NOT NULL", request.ID).
+			Count(&resultsCount).Error; err != nil {
 			return nil, err
 		}
 
@@ -137,10 +135,10 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 		}
 
 		items = append(items, RequestListItem{
-			Request:          request,
-			CreatorLogin:     request.Creator.Login,
-			ModeratorLogin:   moderatorLogin,
-			ResultsCount:     int(mmCount),
+			Request:        request,
+			CreatorLogin:   request.Creator.Login,
+			ModeratorLogin: moderatorLogin,
+			ResultsCount:   int(resultsCount),
 		})
 	}
 
@@ -179,16 +177,13 @@ func (r *Repository) UpdateRequestFields(userID, requestID uint, input RequestUp
 			request.FiO2Value = input.FiO2Value
 		}
 
-		if input.MMComment != nil {
-			trimmed := strings.TrimSpace(*input.MMComment)
-			if trimmed == "" {
-				request.MMComment = nil
-			} else {
-				request.MMComment = &trimmed
-			}
+		if err := tx.Save(&request).Error; err != nil {
+			return err
 		}
 
-		return tx.Save(&request).Error
+		return tx.Model(&RequestService{}).
+			Where("request_id = ?", requestID).
+			Update("result_coefficient", nil).Error
 	}); err != nil {
 		return OxygenationRequest{}, err
 	}
@@ -216,25 +211,18 @@ func (r *Repository) FormDraftRequest(userID, requestID uint) (OxygenationReques
 			return ErrValidationFailed
 		}
 
-		calculated, ok := CalculateOxygenationIndex(*request.BloodValuePaO2, *request.FiO2Value)
-		if !ok {
-			return ErrValidationFailed
-		}
-		diagnosis := DiagnosisByOxygenationIndex(calculated)
 		formedAt := time.Now().UTC()
-
 		request.Status = RequestStatusFormed
 		request.FormedAt = &formedAt
 		request.CompletedAt = nil
 		request.ModeratorID = nil
-		request.MMCoefficient = &calculated
-		request.DiagnosisLabel = &diagnosis
-		if request.MMComment == nil || strings.TrimSpace(*request.MMComment) == "" {
-			comment := defaultRequestCommentText()
-			request.MMComment = &comment
+		if err := tx.Save(&request).Error; err != nil {
+			return err
 		}
 
-		return tx.Save(&request).Error
+		return tx.Model(&RequestService{}).
+			Where("request_id = ?", requestID).
+			Update("result_coefficient", nil).Error
 	}); err != nil {
 		return OxygenationRequest{}, err
 	}
@@ -250,16 +238,10 @@ func (r *Repository) ReviewFormedRequest(requestID, moderatorID uint, action str
 
 	var creatorID uint
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		var request OxygenationRequest
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("id = ?", requestID).
-			First(&request).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return ErrRequestNotFound
-			}
+		request, err := lockRequestByIDWithItems(tx, requestID)
+		if err != nil {
 			return err
 		}
-
 		if request.Status != RequestStatusFormed {
 			return ErrInvalidTransition
 		}
@@ -273,8 +255,22 @@ func (r *Repository) ReviewFormedRequest(requestID, moderatorID uint, action str
 			request.Status = RequestStatusRejected
 		}
 
+		if err := tx.Save(&request).Error; err != nil {
+			return err
+		}
+
+		var resultCoefficient *float64
+		if action == "complete" {
+			resultCoefficient = calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
+		}
+		if err := tx.Model(&RequestService{}).
+			Where("request_id = ?", requestID).
+			Update("result_coefficient", resultCoefficient).Error; err != nil {
+			return err
+		}
+
 		creatorID = request.CreatorID
-		return tx.Save(&request).Error
+		return nil
 	}); err != nil {
 		return OxygenationRequest{}, err
 	}
@@ -333,14 +329,6 @@ func (r *Repository) UpdateRequestServiceInDraft(userID, requestID, serviceID ui
 			}
 			item.Position = *input.Position
 		}
-		if input.DoctorComment != nil {
-			trimmed := strings.TrimSpace(*input.DoctorComment)
-			if trimmed == "" {
-				item.DoctorComment = nil
-			} else {
-				item.DoctorComment = &trimmed
-			}
-		}
 
 		if input.IsPrimary != nil {
 			if *input.IsPrimary {
@@ -361,14 +349,9 @@ func (r *Repository) UpdateRequestServiceInDraft(userID, requestID, serviceID ui
 			return err
 		}
 
-		diagnosis, err := primaryDiagnosis(tx, requestID)
-		if err != nil {
-			return err
-		}
-
-		return tx.Model(&OxygenationRequest{}).
-			Where("id = ?", requestID).
-			Update("diagnosis_label", diagnosis).Error
+		return tx.Model(&RequestService{}).
+			Where("request_id = ?", requestID).
+			Update("result_coefficient", nil).Error
 	}); err != nil {
 		return RequestService{}, err
 	}
@@ -409,25 +392,16 @@ func (r *Repository) RemoveRequestServiceFromDraft(userID, requestID, serviceID 
 		}
 
 		if count == 0 {
-			return tx.Model(&OxygenationRequest{}).
-				Where("id = ?", requestID).
-				Updates(map[string]any{
-					"diagnosis_label": nil,
-					"mm_coefficient":  nil,
-				}).Error
+			return nil
 		}
 
 		if err := ensurePrimary(tx, requestID); err != nil {
 			return err
 		}
-		diagnosis, err := primaryDiagnosis(tx, requestID)
-		if err != nil {
-			return err
-		}
 
-		return tx.Model(&OxygenationRequest{}).
-			Where("id = ?", requestID).
-			Update("diagnosis_label", diagnosis).Error
+		return tx.Model(&RequestService{}).
+			Where("request_id = ?", requestID).
+			Update("result_coefficient", nil).Error
 	})
 }
 
@@ -531,6 +505,26 @@ func lockRequestByCreatorWithItems(tx *gorm.DB, userID, requestID uint) (Oxygena
 	return request, nil
 }
 
+func lockRequestByIDWithItems(tx *gorm.DB, requestID uint) (OxygenationRequest, error) {
+	var request OxygenationRequest
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", requestID).
+		Preload("Items", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position asc")
+		}).
+		Preload("Items.Service").
+		First(&request).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OxygenationRequest{}, ErrRequestNotFound
+		}
+		return OxygenationRequest{}, err
+	}
+	if request.Status == RequestStatusDeleted {
+		return OxygenationRequest{}, ErrRequestDeleted
+	}
+	return request, nil
+}
+
 func ensurePrimary(tx *gorm.DB, requestID uint) error {
 	var count int64
 	if err := tx.Model(&RequestService{}).
@@ -544,7 +538,7 @@ func ensurePrimary(tx *gorm.DB, requestID uint) error {
 
 	var first RequestService
 	if err := tx.Where("request_id = ?", requestID).
-		Order("position asc, id asc").
+		Order("position asc, service_id asc").
 		First(&first).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
@@ -552,26 +546,7 @@ func ensurePrimary(tx *gorm.DB, requestID uint) error {
 		return err
 	}
 
-	return tx.Model(&RequestService{}).Where("id = ?", first.ID).Update("is_primary", true).Error
-}
-
-func primaryDiagnosis(tx *gorm.DB, requestID uint) (any, error) {
-	type diagnosisRow struct {
-		Name string
-	}
-
-	var row diagnosisRow
-	err := tx.Table("oxygenation_request_services rs").
-		Select("s.name").
-		Joins("JOIN oxygenation_services s ON s.id = rs.service_id").
-		Where("rs.request_id = ? AND rs.is_primary = TRUE", requestID).
-		Order("rs.position asc, rs.id asc").
-		Take(&row).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return row.Name, nil
+	return tx.Model(&RequestService{}).
+		Where("request_id = ? AND service_id = ?", first.RequestID, first.ServiceID).
+		Update("is_primary", true).Error
 }

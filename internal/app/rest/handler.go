@@ -49,47 +49,44 @@ type errorResponse struct {
 }
 
 type serviceResponse struct {
-	ID              uint   `json:"id"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	Status          string `json:"status"`
-	ImageURL        string `json:"image_url,omitempty"`
-	VideoURL        string `json:"video_url,omitempty"`
-	Benchmark       string `json:"benchmark"`
-	ClinicalSigns   string `json:"clinical_signs,omitempty"`
-	Recommendations string `json:"recommendations,omitempty"`
-	CreatedAt       string `json:"created_at"`
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	ImageURL    string `json:"image_url,omitempty"`
+	VideoURL    string `json:"video_url,omitempty"`
+	Benchmark   string `json:"benchmark"`
+	CreatedAt   string `json:"created_at"`
 }
 
 type requestServiceResponse struct {
-	RequestID     uint   `json:"request_id"`
-	ServiceID     uint   `json:"service_id"`
-	ServiceName   string `json:"service_name"`
-	ImageURL      string `json:"image_url,omitempty"`
-	VideoURL      string `json:"video_url,omitempty"`
-	Benchmark     string `json:"benchmark,omitempty"`
-	Quantity      int    `json:"quantity"`
-	Position      int    `json:"position"`
-	IsPrimary     bool   `json:"is_primary"`
-	DoctorComment string `json:"doctor_comment,omitempty"`
+	RequestID         uint   `json:"request_id"`
+	ServiceID         uint   `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	ImageURL          string `json:"image_url,omitempty"`
+	VideoURL          string `json:"video_url,omitempty"`
+	Benchmark         string `json:"benchmark,omitempty"`
+	Quantity          int    `json:"quantity"`
+	Position          int    `json:"position"`
+	IsPrimary         bool   `json:"is_primary"`
+	ResultCoefficient any    `json:"result_coefficient"`
 }
 
 type requestResponse struct {
-	ID               uint                     `json:"id"`
-	CreatedAt        string                   `json:"created_at"`
-	FormedAt         string                   `json:"formed_at,omitempty"`
-	CompletedAt      string                   `json:"completed_at,omitempty"`
-	CreatorLogin     string                   `json:"creator_login,omitempty"`
-	ModeratorLogin   string                   `json:"moderator_login,omitempty"`
-	PatientName      string                   `json:"patient_name"`
-	BloodValuePaO2   any                      `json:"blood_value_pao2"`
-	FiO2Value        any                      `json:"fio2_value"`
-	MMCoefficient    any                      `json:"mm_coefficient"`
-	Result           string                   `json:"result"`
-	DiagnosisLabel   string                   `json:"diagnosis_label"`
-	MMComment        string                   `json:"mm_comment"`
-	ResultsCount     int                      `json:"results_count"`
-	Items            []requestServiceResponse `json:"items,omitempty"`
+	ID                uint                     `json:"id"`
+	CreatedAt         string                   `json:"created_at"`
+	FormedAt          string                   `json:"formed_at,omitempty"`
+	CompletedAt       string                   `json:"completed_at,omitempty"`
+	CreatorLogin      string                   `json:"creator_login,omitempty"`
+	ModeratorLogin    string                   `json:"moderator_login,omitempty"`
+	PatientName       string                   `json:"patient_name"`
+	BloodValuePaO2    any                      `json:"blood_value_pao2"`
+	FiO2Value         any                      `json:"fio2_value"`
+	PrimaryService    string                   `json:"primary_service"`
+	ResultCoefficient any                      `json:"result_coefficient"`
+	Result            string                   `json:"result"`
+	ResultsCount      int                      `json:"results_count"`
+	Items             []requestServiceResponse `json:"items,omitempty"`
 }
 
 type registerUserRequest struct {
@@ -107,7 +104,6 @@ type updateRequestPayload struct {
 	PatientName    *string  `json:"patient_name"`
 	BloodValuePaO2 *float64 `json:"blood_value_pao2"`
 	FiO2Value      *float64 `json:"fio2_value"`
-	MMComment      *string  `json:"mm_comment"`
 }
 
 type addRequestServicePayload struct {
@@ -115,10 +111,9 @@ type addRequestServicePayload struct {
 }
 
 type updateRequestServicePayload struct {
-	Quantity      *int    `json:"quantity"`
-	Position      *int    `json:"position"`
-	IsPrimary     *bool   `json:"is_primary"`
-	DoctorComment *string `json:"doctor_comment"`
+	Quantity  *int  `json:"quantity"`
+	Position  *int  `json:"position"`
+	IsPrimary *bool `json:"is_primary"`
 }
 
 type reviewRequestPayload struct {
@@ -181,13 +176,11 @@ func (h *Handler) CreateService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	service, err := h.repo.CreateService(repository.ServiceCreateInput{
-		Name:            r.FormValue("name"),
-		Description:     r.FormValue("description"),
-		Benchmark:       r.FormValue("benchmark"),
-		ClinicalSigns:   r.FormValue("clinical_signs"),
-		Recommendations: r.FormValue("recommendations"),
-		ImageURL:        imageURL,
-		VideoURL:        videoURL,
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Benchmark:   r.FormValue("benchmark"),
+		ImageURL:    imageURL,
+		VideoURL:    videoURL,
 	})
 	if err != nil {
 		writeRepositoryError(w, err)
@@ -251,10 +244,9 @@ func (h *Handler) UpdateRequestService(w http.ResponseWriter, r *http.Request) {
 
 	current := actor.Current()
 	item, err := h.repo.UpdateRequestServiceInDraft(current.CreatorID, requestID, serviceID, repository.RequestServiceUpdateInput{
-		Quantity:      payload.Quantity,
-		Position:      payload.Position,
-		IsPrimary:     payload.IsPrimary,
-		DoctorComment: payload.DoctorComment,
+		Quantity:  payload.Quantity,
+		Position:  payload.Position,
+		IsPrimary: payload.IsPrimary,
 	})
 	if err != nil {
 		writeRepositoryError(w, err)
@@ -362,7 +354,6 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 		PatientName:    payload.PatientName,
 		BloodValuePaO2: payload.BloodValuePaO2,
 		FiO2Value:      payload.FiO2Value,
-		MMComment:      payload.MMComment,
 	})
 	if err != nil {
 		writeRepositoryError(w, err)
@@ -578,52 +569,49 @@ func parsePathUint(r *http.Request, key string) (uint, error) {
 
 func serializeService(service repository.OxygenationService) serviceResponse {
 	return serviceResponse{
-		ID:              service.ID,
-		Name:            service.Name,
-		Description:     service.Description,
-		Status:          string(service.Status),
-		ImageURL:        nullableStringToValue(service.ImageURL),
-		VideoURL:        nullableStringToValue(service.VideoURL),
-		Benchmark:       service.Benchmark,
-		ClinicalSigns:   service.ClinicalSigns,
-		Recommendations: service.Recommendations,
-		CreatedAt:       service.CreatedAt.Format(time.RFC3339),
+		ID:          service.ID,
+		Name:        service.Name,
+		Description: service.Description,
+		Status:      string(service.Status),
+		ImageURL:    nullableStringToValue(service.ImageURL),
+		VideoURL:    nullableStringToValue(service.VideoURL),
+		Benchmark:   service.Benchmark,
+		CreatedAt:   service.CreatedAt.Format(time.RFC3339),
 	}
 }
 
 func serializeRequestService(item repository.RequestService) requestServiceResponse {
 	return requestServiceResponse{
-		RequestID:     item.RequestID,
-		ServiceID:     item.ServiceID,
-		ServiceName:   item.Service.Name,
-		ImageURL:      nullableStringToValue(item.Service.ImageURL),
-		VideoURL:      nullableStringToValue(item.Service.VideoURL),
-		Benchmark:     item.Service.Benchmark,
-		Quantity:      item.Quantity,
-		Position:      item.Position,
-		IsPrimary:     item.IsPrimary,
-		DoctorComment: nullableStringToValue(item.DoctorComment),
+		RequestID:         item.RequestID,
+		ServiceID:         item.ServiceID,
+		ServiceName:       item.Service.Name,
+		ImageURL:          nullableStringToValue(item.Service.ImageURL),
+		VideoURL:          nullableStringToValue(item.Service.VideoURL),
+		Benchmark:         item.Service.Benchmark,
+		Quantity:          item.Quantity,
+		Position:          item.Position,
+		IsPrimary:         item.IsPrimary,
+		ResultCoefficient: nullableFloatToAny(item.ResultCoefficient),
 	}
 }
 
 func serializeRequest(request repository.OxygenationRequest, creatorLogin string, moderatorLogin *string, resultsCount int, withItems bool) requestResponse {
-	diagnosisLabel := nullableStringToValue(request.DiagnosisLabel)
+	primaryService, resultCoefficient := requestResultInfo(request)
 
 	response := requestResponse{
-		ID:               request.ID,
-		CreatedAt:        request.CreatedAt.Format(time.RFC3339),
-		FormedAt:         nullableTimeToValue(request.FormedAt),
-		CompletedAt:      nullableTimeToValue(request.CompletedAt),
-		CreatorLogin:     creatorLogin,
-		ModeratorLogin:   nullableStringToValue(moderatorLogin),
-		PatientName:      nullableStringToValue(request.PatientName),
-		BloodValuePaO2:   nullableFloatToAny(request.BloodValuePaO2),
-		FiO2Value:        nullableFloatToAny(request.FiO2Value),
-		MMCoefficient:    nullableFloatToAny(request.MMCoefficient),
-		Result:           resolveResultLabel(request.DiagnosisLabel),
-		DiagnosisLabel:   diagnosisLabel,
-		MMComment:        nullableStringToValue(request.MMComment),
-		ResultsCount:     resultsCount,
+		ID:                request.ID,
+		CreatedAt:         request.CreatedAt.Format(time.RFC3339),
+		FormedAt:          nullableTimeToValue(request.FormedAt),
+		CompletedAt:       nullableTimeToValue(request.CompletedAt),
+		CreatorLogin:      creatorLogin,
+		ModeratorLogin:    nullableStringToValue(moderatorLogin),
+		PatientName:       nullableStringToValue(request.PatientName),
+		BloodValuePaO2:    nullableFloatToAny(request.BloodValuePaO2),
+		FiO2Value:         nullableFloatToAny(request.FiO2Value),
+		PrimaryService:    primaryService,
+		ResultCoefficient: nullableFloatToAny(resultCoefficient),
+		Result:            resultText(resultCoefficient),
+		ResultsCount:      resultsCount,
 	}
 
 	if withItems {
@@ -631,24 +619,38 @@ func serializeRequest(request repository.OxygenationRequest, creatorLogin string
 		for _, item := range request.Items {
 			response.Items = append(response.Items, serializeRequestService(item))
 		}
-		response.ResultsCount = countNonEmptyResults(request.Items)
+		response.ResultsCount = countCalculatedResults(request.Items)
 	}
 
 	return response
 }
 
-func resolveResultLabel(diagnosisLabel *string) string {
-	label := strings.TrimSpace(nullableStringToValue(diagnosisLabel))
-	if label == "" {
-		return "не рассчитан"
+func requestResultInfo(request repository.OxygenationRequest) (string, *float64) {
+	if len(request.Items) == 0 {
+		return "", nil
 	}
-	return label
+
+	for _, item := range request.Items {
+		if item.IsPrimary {
+			return item.Service.Name, item.ResultCoefficient
+		}
+	}
+
+	first := request.Items[0]
+	return first.Service.Name, first.ResultCoefficient
 }
 
-func countNonEmptyResults(items []repository.RequestService) int {
+func resultText(coefficient *float64) string {
+	if coefficient == nil {
+		return "не рассчитан"
+	}
+	return repository.DiagnosisByOxygenationIndex(*coefficient)
+}
+
+func countCalculatedResults(items []repository.RequestService) int {
 	count := 0
 	for _, item := range items {
-		if strings.TrimSpace(nullableStringToValue(item.DoctorComment)) != "" {
+		if item.ResultCoefficient != nil {
 			count++
 		}
 	}
