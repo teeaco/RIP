@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"rip/internal/app/repository"
 )
@@ -21,24 +20,24 @@ type Handler struct {
 }
 
 type requestServiceRow struct {
-	ID            uint
-	Name          string
-	Benchmark     string
-	ImageURL      string
-	VideoURL      string
-	Quantity      int
-	DoctorComment string
-	IsDiagnosis   bool
+	ID                uint
+	Name              string
+	Benchmark         string
+	ImageURL          string
+	VideoURL          string
+	Quantity          int
+	IsPrimary         bool
+	ResultCoefficient string
 }
 
 type requestView struct {
-	ID             uint
-	PatientName    string
-	BloodValuePaO2 string
-	FiO2Value      string
-	MMCoefficient  string
-	DiagnosisLabel string
-	MMComment      string
+	ID                uint
+	PatientName       string
+	BloodValuePaO2    string
+	FiO2Value         string
+	ResultCoefficient string
+	ResultLabel       string
+	PrimaryService    string
 }
 
 type indexPageData struct {
@@ -136,41 +135,41 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diagnosisLabel := safeString(request.DiagnosisLabel)
-	mmComment := safeString(request.MMComment)
-	if shouldUseGeneratedDoctorOpinion(mmComment) || mmComment == "-" {
-		mmComment = defaultRequestComment()
-	}
-	mmComment = resolveRequestDoctorComment(request.Items, diagnosisLabel, mmComment)
-
 	rows := make([]requestServiceRow, 0, len(request.Items))
-	for _, item := range request.Items {
-		isDiagnosis := item.IsPrimary
-		if strings.TrimSpace(diagnosisLabel) != "" && diagnosisLabel != "-" {
-			isDiagnosis = item.Service.Name == diagnosisLabel
-		}
+	primaryService := "-"
+	var primaryCoefficient *float64
 
+	for _, item := range request.Items {
 		rows = append(rows, requestServiceRow{
-			ID:            item.Service.ID,
-			Name:          item.Service.Name,
-			Benchmark:     item.Service.Benchmark,
-			ImageURL:      safeString(item.Service.ImageURL),
-			VideoURL:      safeString(item.Service.VideoURL),
-			Quantity:      item.Quantity,
-			DoctorComment: safeString(item.DoctorComment),
-			IsDiagnosis:   isDiagnosis,
+			ID:                item.Service.ID,
+			Name:              item.Service.Name,
+			Benchmark:         item.Service.Benchmark,
+			ImageURL:          safeString(item.Service.ImageURL),
+			VideoURL:          safeString(item.Service.VideoURL),
+			Quantity:          item.Quantity,
+			IsPrimary:         item.IsPrimary,
+			ResultCoefficient: formatCoefficient(item.ResultCoefficient),
 		})
+
+		if item.IsPrimary {
+			primaryService = item.Service.Name
+			primaryCoefficient = item.ResultCoefficient
+		}
+	}
+
+	if primaryCoefficient == nil && len(request.Items) > 0 {
+		primaryCoefficient = request.Items[0].ResultCoefficient
 	}
 
 	data := requestPageData{
 		Request: requestView{
-			ID:             request.ID,
-			PatientName:    safeString(request.PatientName),
-			BloodValuePaO2: formatPaO2(request.BloodValuePaO2),
-			FiO2Value:      formatFiO2(request.FiO2Value),
-			MMCoefficient:  formatCoefficient(request.MMCoefficient),
-			DiagnosisLabel: diagnosisLabel,
-			MMComment:      mmComment,
+			ID:                request.ID,
+			PatientName:       safeString(request.PatientName),
+			BloodValuePaO2:    formatPaO2(request.BloodValuePaO2),
+			FiO2Value:         formatFiO2(request.FiO2Value),
+			ResultCoefficient: formatCoefficient(primaryCoefficient),
+			ResultLabel:       resultLabel(primaryCoefficient),
+			PrimaryService:    primaryService,
 		},
 		Rows: rows,
 	}
@@ -260,126 +259,15 @@ func formatCoefficient(value *float64) string {
 	return strconv.FormatFloat(*value, 'f', 1, 64)
 }
 
-func defaultRequestComment() string {
-	return "Состояние средней тяжести. Рекомендован повторный контроль коэффициента через 6 часов."
+func resultLabel(value *float64) string {
+	if value == nil {
+		return "-"
+	}
+	return repository.DiagnosisByOxygenationIndex(*value)
 }
 
 func normalizeServiceDescription(description string) string {
-	trimmed := strings.TrimSpace(description)
-	if trimmed == "" {
-		return trimmed
-	}
-
-	for _, prefix := range []string{
-		"Эталон степени для ",
-		"эталон степени для ",
-		"Эталон услуги для ",
-		"эталон услуги для ",
-	} {
-		if strings.HasPrefix(trimmed, prefix) {
-			cleaned := strings.TrimSpace(strings.TrimPrefix(trimmed, prefix))
-			cleaned = strings.TrimSpace(strings.TrimSuffix(cleaned, "."))
-			if cleaned == "" {
-				return trimmed
-			}
-			return normalizeKnownNominative(cleaned)
-		}
-	}
-
-	lowered := strings.ToLower(trimmed)
-	for _, loweredPrefix := range []string{"эталон степени для ", "эталон услуги для "} {
-		if strings.HasPrefix(lowered, loweredPrefix) {
-			textRunes := []rune(trimmed)
-			prefixRunes := []rune(loweredPrefix)
-			if len(textRunes) < len(prefixRunes) {
-				return trimmed
-			}
-			cleaned := strings.TrimSpace(string(textRunes[len(prefixRunes):]))
-			cleaned = strings.TrimSpace(strings.TrimSuffix(cleaned, "."))
-			if cleaned == "" {
-				return trimmed
-			}
-			return normalizeKnownNominative(cleaned)
-		}
-	}
-
-	return normalizeKnownNominative(trimmed)
-}
-
-func resolveRequestDoctorComment(items []repository.RequestService, diagnosisLabel, fallback string) string {
-	recommendation := recommendationForDiagnosis(items, diagnosisLabel)
-	if recommendation != "" {
-		return recommendation
-	}
-	if shouldUseGeneratedDoctorOpinion(fallback) || strings.TrimSpace(fallback) == "" || strings.TrimSpace(fallback) == "-" {
-		return defaultRequestComment()
-	}
-	return fallback
-}
-
-func recommendationForDiagnosis(items []repository.RequestService, diagnosisLabel string) string {
-	label := strings.TrimSpace(diagnosisLabel)
-	if label != "" && label != "-" {
-		for _, item := range items {
-			if item.Service.Name == label {
-				return strings.TrimSpace(item.Service.Recommendations)
-			}
-		}
-	}
-
-	for _, item := range items {
-		if item.IsPrimary {
-			if recommendation := strings.TrimSpace(item.Service.Recommendations); recommendation != "" {
-				return recommendation
-			}
-		}
-	}
-
-	for _, item := range items {
-		if recommendation := strings.TrimSpace(item.Service.Recommendations); recommendation != "" {
-			return recommendation
-		}
-	}
-
-	return ""
-}
-
-func upperFirstRune(text string) string {
-	runes := []rune(text)
-	if len(runes) == 0 {
-		return text
-	}
-	runes[0] = unicode.ToUpper(runes[0])
-	return string(runes)
-}
-
-func normalizeKnownNominative(text string) string {
-	cleaned := strings.TrimSpace(strings.TrimSuffix(text, "."))
-	normalized := strings.ToLower(cleaned)
-
-	switch normalized {
-	case "нормального газообмена":
-		return "Нормальный газообмен."
-	case "легкой дыхательной недостаточности":
-		return "Легкая дыхательная недостаточность."
-	case "умеренной дыхательной недостаточности":
-		return "Умеренная дыхательная недостаточность."
-	case "тяжелой дыхательной недостаточности":
-		return "Тяжелая дыхательная недостаточность."
-	default:
-		if cleaned == "" {
-			return ""
-		}
-		return upperFirstRune(cleaned) + "."
-	}
-}
-
-func shouldUseGeneratedDoctorOpinion(comment string) bool {
-	normalized := strings.ToLower(strings.TrimSpace(comment))
-	if normalized == "" || normalized == "-" {
-		return true
-	}
-	return strings.Contains(normalized, "по мнению врача")
+	return strings.TrimSpace(description)
 }
 
 func safeString(value *string) string {
