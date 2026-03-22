@@ -50,9 +50,8 @@ type indexPageData struct {
 }
 
 type detailPageData struct {
-	Service repository.OxygenationService
-	Signs   []string
-	Recs    []string
+	Service      repository.OxygenationService
+	DoctorAdvice string
 }
 
 type requestPageData struct {
@@ -113,9 +112,8 @@ func (h *Handler) GetServiceDetail(w http.ResponseWriter, r *http.Request) {
 	service.Description = normalizeServiceDescription(service.Description)
 
 	data := detailPageData{
-		Service: service,
-		Signs:   splitBySemicolon(service.ClinicalSigns),
-		Recs:    splitBySemicolon(service.Recommendations),
+		Service:      service,
+		DoctorAdvice: doctorAdvice(service),
 	}
 
 	renderTemplate(w, "detail.html", data)
@@ -232,16 +230,12 @@ func normalizeReturnTo(value string) string {
 	return trimmed
 }
 
-func splitBySemicolon(text string) []string {
-	parts := strings.Split(text, ";")
-	result := make([]string, 0, len(parts))
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			result = append(result, trimmed)
-		}
+func doctorAdvice(service repository.OxygenationService) string {
+	if service.ID == 1 {
+		return "Не идти к врачу"
 	}
-	return result
+
+	return "Идти к врачу"
 }
 
 func formatPaO2(value *float64) string {

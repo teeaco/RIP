@@ -34,33 +34,9 @@
 
                 <div class="media-overlay-grid">
                     <div class="overlay-block">
-                        <h2 class="overlay-block-title">Клинические признаки</h2>
-                        <ul class="overlay-list">
-                            {{range .Signs}}
-                            <li>{{.}}</li>
-                            {{else}}
-                            <li>Нет данных</li>
-                            {{end}}
-                        </ul>
+                        <h2 class="overlay-block-title">Рекомендация врача</h2>
+                        <p class="media-overlay-desc">{{.DoctorAdvice}}</p>
                     </div>
-                    <div class="overlay-block">
-                        <h2 class="overlay-block-title">Рекомендации врача</h2>
-                        <ul class="overlay-list">
-                            {{range .Recs}}
-                            <li>{{.}}</li>
-                            {{else}}
-                            <li>Нет данных</li>
-                            {{end}}
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="media-overlay-actions">
-                    <form action="/oxygenation_request/add-service" method="POST" class="detail-add-form">
-                        <input type="hidden" name="service_id" value="{{.Service.ID}}">
-                        <input type="hidden" name="return_to" value="/services/{{.Service.ID}}">
-                        <button type="submit" class="btn-add btn-add-detail">Добавить</button>
-                    </form>
                 </div>
             </div>
         </section>
