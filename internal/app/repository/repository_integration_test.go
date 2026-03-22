@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"math"
 	"os"
 	"testing"
 	"time"
@@ -118,8 +119,18 @@ func TestRepositoryAddDeleteAndSearchFlow(t *testing.T) {
 	if request.Items[0].Quantity != 2 {
 		t.Fatalf("expected quantity=2 after second add, got %d", request.Items[0].Quantity)
 	}
-	if request.Items[0].ResultCoefficient == nil {
-		t.Fatalf("expected calculated result_coefficient to be stored in m-m row")
+
+	expectedCoefficient := calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
+	actualCoefficient := request.Items[0].ResultCoefficient
+	if expectedCoefficient == nil && actualCoefficient != nil {
+		t.Fatalf("expected NULL result_coefficient, got %v", *actualCoefficient)
+	}
+	if expectedCoefficient != nil && actualCoefficient == nil {
+		t.Fatalf("expected non-NULL result_coefficient")
+	}
+	if expectedCoefficient != nil && actualCoefficient != nil &&
+		math.Abs(*expectedCoefficient-*actualCoefficient) > 0.000001 {
+		t.Fatalf("unexpected result_coefficient: expected %v, got %v", *expectedCoefficient, *actualCoefficient)
 	}
 
 	if err := repo.SoftDeleteDraftBySQL(userID, requestID); err != nil {
