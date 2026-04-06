@@ -1,0 +1,8 @@
+$kind: http-request
+name: "11 update request fields"
+url: "{{base_url}}/api/oxygenation_request/{{request_id}}"
+method: PUT
+body:
+  type: json
+  content: '{"patient_name":"Иванов И.И.","blood_value_pao2":90.1,"fio2_value":0.5}'
+order: 11000

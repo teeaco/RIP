@@ -1,0 +1,23 @@
+$kind: http-request
+name: "05 create service"
+url: "{{base_url}}/api/services"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: name
+      value: Demo Service API
+      description: ""
+      disabled: false
+    - type: text
+      key: description
+      value: Service for demo
+      description: ""
+      disabled: false
+    - type: text
+      key: benchmark
+      value: PaO2/FiO2 250-300
+      description: ""
+      disabled: false
+order: 5000

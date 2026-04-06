@@ -1,0 +1,5 @@
+$kind: http-request
+name: "09 get request by id"
+url: "{{base_url}}/api/oxygenation_request/{{request_id}}"
+method: GET
+order: 9000

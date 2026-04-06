@@ -1,0 +1,8 @@
+$kind: http-request
+name: "06 add service 1 to draft"
+url: "{{base_url}}/api/request-services"
+method: POST
+body:
+  type: json
+  content: '{"service_id": {{service_id_1}}}'
+order: 6000

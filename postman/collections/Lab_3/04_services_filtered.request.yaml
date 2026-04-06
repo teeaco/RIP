@@ -1,0 +1,7 @@
+$kind: http-request
+name: "04 services filtered"
+url: "{{base_url}}/api/services?query=PaO2"
+method: GET
+queryParams:
+  query: PaO2
+order: 4000

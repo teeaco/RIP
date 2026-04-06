@@ -13,6 +13,7 @@ import (
 	"rip/internal/app/handler"
 	"rip/internal/app/repository"
 	"rip/internal/app/rest"
+	"rip/internal/app/security"
 	"rip/internal/app/storage"
 )
 
@@ -44,7 +45,25 @@ func StartServer() {
 	} else {
 		uploader = minioUploader
 	}
-	apiHandler := rest.NewHandler(repo, uploader)
+	var apiHandler *rest.Handler
+	securityService, securityErr := security.NewService(security.Config{
+		JWTSecret:   envOrDefault("JWT_SECRET", "lab4-dev-secret"),
+		TokenTTL:    time.Duration(envInt("AUTH_TTL_MINUTES", 120)) * time.Minute,
+		RedisAddr:   envOrDefault("REDIS_ADDR", "127.0.0.1:6379"),
+		RedisPass:   envOrDefault("REDIS_PASSWORD", "password"),
+		RedisDB:     envInt("REDIS_DB", 0),
+		KeyPrefix:   envOrDefault("REDIS_SESSION_PREFIX", "rip:session:"),
+		RedisEnable: true,
+	})
+	if securityErr != nil {
+		log.Fatalf("auth init failed: %v", securityErr)
+	}
+	defer func() {
+		if err := securityService.Close(); err != nil {
+			log.Printf("auth close error: %v", err)
+		}
+	}()
+	apiHandler = rest.NewHandler(repo, uploader, securityService)
 
 	mux := http.NewServeMux()
 	apiHandler.RegisterRoutes(mux)
@@ -144,6 +163,18 @@ func envBool(key string, fallback bool) bool {
 	default:
 		return fallback
 	}
+}
+
+func envInt(key string, fallback int) int {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

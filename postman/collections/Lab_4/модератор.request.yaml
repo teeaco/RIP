@@ -1,0 +1,11 @@
+$kind: http-request
+name: модератор
+url: "{{base_url}}/api/users/login"
+method: POST
+headers:
+  - name: Content-Type
+    value: application/json
+body:
+  type: json
+  content: "{\"login\":\"moderator\",\"password\":\"moderator\"}\r\n"
+order: 3135018453168873

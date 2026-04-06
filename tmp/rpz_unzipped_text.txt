@@ -1,0 +1,460 @@
+﻿Министерство науки и высшего образования Российской Федерации
+Федеральное государственное бюджетное образовательное учреждение 
+высшего образования
+«Московский государственный технический университет
+имени Н.Э. Баумана
+(национальный исследовательский университет)»
+(МГТУ им. Н.Э. Баумана)
+ФАКУЛЬТЕТ ___ИНФОРМАТИКА И СИСТЕМЫ УПРАВЛЕНИЯ__________________________
+КАФЕДРА _____СИСТЕМЫ ОБРАБОТКИ ИНФОРМАЦИИ И УПРАВЛЕНИЯ_______________
+РАСЧЕТНО-ПОЯСНИТЕЛЬНАЯ ЗАПИСКА
+К   ДОМАШНЕМУ ЗАДАНИЮ
+НА ТЕМУ:
+_____Оценка оксигенации пациента___
+______________________________________________
+______________________________________________
+______________________________________________
+______________________________________________
+Студент __ИУ5-65Б_______</w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/></w:rPr><w:t>_________________   ____Н.О. Бердников___ 
+(Группа)</w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:tab/><w:t xml:space="preserve">         (Подпись, дата)                           (И.О.Фамилия)            
+Руководитель курсовой работы </w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/></w:rPr><w:tab/></w:r><w:r w:rsidRPr="0077720E"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/></w:rPr><w:t xml:space="preserve">_________________   _____А.И. Канев______
+(Подпись, дата)                             (И.О.Фамилия)            
+2025 г.
+Рисунок 1 – ER-диаграмма
+Рисунок 2 – Диаграмма классов бэкенда
+Данные о услугих хранятся в таблице oxygenation_services (таблица 1). Для хранения состава одной заявки на оценку оксигенации используется таблица oxygenation_request_services (таблица 2). Таблица oxygenation_requests (таблица 3) представляет собой список всех заявок по услугам. Данные о рабочих и инженерах (модераторах заявок) хранятся в таблице app_users (таблица 4).
+Таблица 1 – Таблица oxygenation_services
+Атрибут
+Тип данных
+Описание
+service_id 
+INTEGER(10)
+Первичный ключ, идентификатор услуги
+title
+VARCHAR(255)
+Название услуги
+description 
+VARCHAR(1000)
+Полное текстовое описание услуги
+is_deleted
+BOOLEAN 
+Флаг «мягкого удаления» услуги
+photo_url
+VARCHAR(255)
+Ссылка на изображение услуги
+benchmark
+INTEGER 
+Пороговое значение показателя оксигенации (benchmark)
+head
+VARCHAR(255)
+Руководитель услуги
+image_url 
+VARCHAR(255)
+Наименование должности/лица, которому подчиняется руководитель
+video 
+VARCHAR(255)
+Ссылка на видео об услуге
+short_description 
+VARCHAR(500)
+Краткое описание услуги
+Таблица 2 – Таблица oxygenation_requests_department
+Атрибут
+Тип данных
+Описание
+request_id 
+INTEGER(10)
+Идентификатор заявки
+service_id 
+INTEGER(10)
+Идентификатор услуги
+position 
+INTEGER(10)
+Порядок отображения услуги в рамках заявки
+role 
+VARCHAR(100)
+Роль услуги в заявке
+result_coefficient 
+NUMERIC(12,2)
+Значение заработной платы
+is_primary 
+INTEGER(10)
+Идентификатор основного услуги, в рамках заявки
+Таблица 3 – Таблица oxygenation_requests
+Атрибут
+Тип данных
+Описание
+request_id 
+INTEGER(10)
+Первичный ключ, идентификатор заявки на оценку оксигенации
+status 
+VARCHAR(20) 
+Статус заявки на оценку оксигенации
+created_at 
+TIMESTAMP 
+Дата и время создания заявки
+creator_id 
+INTEGER
+Идентификатор создателя заявки
+forming_date 
+TIMESTAMP 
+Дата и время формирования заявки
+finish_date 
+TIMESTAMP 
+Дата и время завершения обработки заявки
+moderator_id 
+INTEGER(10)
+Идентификатор модератора, обрабатывающего заявку
+title 
+VARCHAR(255)
+Заголовок заявки
+Таблица 4 – Таблица app_users
+Атрибут
+Тип данных
+Описание
+user_id
+INTEGER(10)
+Первичный ключ, идентификатор пользователя
+login
+VARCHAR(50)
+Логин пользователя
+password
+VARCHAR(100)
+Пароль пользователя
+is_moderator
+BOOLEAN
+Флаг «является ли пользователь инженером»
+На основе анализа структурных данных и предполагаемой нагрузки был произведён расчёт аппаратных требований для системы заявок по услугам. Система рассчитана на одновременную работу до 100 рабочих и 10 инженеровмодераторов. Пусть рабочий формирует 30 заявок по услугам в день, его рабочий день длится 8 часов. Количество заявок в сутки определяется по формуле 1.
+</w:r><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">                   (1)
+На каждую заявку согласно диаграмме последовательности приходится 14 запросов к серверу. Вычислим RPS с учётом того, что каждый инженер генерирует ещё по одному RPS из-за механизма polling. RPS вычисляется по формуле 2.
+       (2)
+Рассчитаем количество ядер по формуле 3, пример kreserve = 1,5, а необходимый объём оперативный памяти по формуле 4 с учётом того, что на одно ядро требуется 4 ГБ оперативной памяти.
+<w:tab w:val="center" w:pos="4648"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00175824"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/></w:r><m:oMath><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:i/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>cores</m:t></m:r></m:sub></m:sSub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve">= </m:t></m:r><m:f><m:fPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:i/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:fPr><m:num><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>RPS</m:t></m:r></m:num><m:den><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:i/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>RPS</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>core</m:t></m:r></m:sub></m:sSub></m:den></m:f><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve"> ×</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:i/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>k</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>reserve</m:t></m:r></m:sub></m:sSub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=</m:t></m:r><m:f><m:fPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:i/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:fPr><m:num><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>11,46</m:t></m:r></m:num><m:den><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>500</m:t></m:r></m:den></m:f><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve"> ×1,5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>≈</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>1 ядро</m:t></m:r></m:oMath><w:r w:rsidRPr="00E1294A"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(3)
+<w:tab w:val="center" w:pos="4678"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00175824"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/></w:r><m:oMath><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>RAM</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=4×</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>cores</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve">=4×1=4 </m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>ГБ</m:t></m:r></m:oMath><w:r w:rsidRPr="00972777"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(4)
+Рассчитаем размеры записей в таблицы oxygenation_requests (id заявки и двух пользователей – по 4 байта, три системные даты – по 8 байт, статус – 20 байт, заголовок заявки – 255 байт) и oxygenation_request_services (четыре целочисленных поля – по 4 байта, роль услуги – 100 байт, значение заработной платы – 16 байт) по формулам 5 и 6.
+<w:tab w:val="center" w:pos="4648"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00BF4B6B"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/></w:r><m:oMath><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>S</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>da</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=4×3+8×3+2</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>0</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>+2</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>55</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=3</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>11</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve"> </m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>байт</m:t></m:r></m:oMath><w:r w:rsidRPr="00843700"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(5)
+<w:tab w:val="center" w:pos="4648"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00843700"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/></w:r><m:oMath><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>S</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>dad</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=4×4+1</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>00</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>+1</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>6</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=1</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>32</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t xml:space="preserve"> б</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>айт</m:t></m:r></m:oMath><w:r w:rsidRPr="00843700"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(6)
+Рассчитаем объём диска для сервера. Для этого определим годовой объём данных по формуле 7 и прирост размера БД за год по формуле 8, по формуле 9 рассчитаем необходимый объём диска, примем Nreserve = 2 ГБ для запаса.
+<w:tab w:val="center" w:pos="4648"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><m:oMath><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>year</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>requests</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>/</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>day</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>×365=3000×365=1095000 заявок/год</m:t></m:r></m:oMath><w:r w:rsidR="006B5551" w:rsidRPr="00E1294A"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(7)
+<w:tab w:val="center" w:pos="4676"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00175824"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/></w:r><m:oMath><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>D</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>B</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>growt</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>h/</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>year</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=</m:t></m:r><m:f><m:fPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:fPr><m:num><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>year</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>×(</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>S</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>da</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>+3×</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>S</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>dad</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>)</m:t></m:r></m:num><m:den><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>1024×1024</m:t></m:r></m:den></m:f><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=</m:t></m:r><m:f><m:fPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:fPr><m:num><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>1095000×(3</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>11</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>+3×1</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>32</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>)</m:t></m:r></m:num><m:den><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>1024×1024</m:t></m:r></m:den></m:f><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t xml:space="preserve">≈0,7 </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>ГБ</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>/год</m:t></m:r></m:oMath><w:r w:rsidRPr="00E1294A"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(8)
+<w:tab w:val="center" w:pos="4676"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><m:oMath><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>D</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>isk</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>total</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=5×</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>D</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:iCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>B</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>growt</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>h/</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>year</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>+</m:t></m:r><m:sSub><m:sSubPr><m:ctrlPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></m:ctrlPr></m:sSubPr><m:e><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>N</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><m:t>reserve</m:t></m:r></m:sub></m:sSub><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>=</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>5×</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>0,7</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>+2</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>=5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>,5</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t xml:space="preserve"> </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><m:t>Г</m:t></m:r><m:r><m:rPr><m:sty m:val="p"/></m:rPr><w:rPr><w:rFonts w:ascii="Cambria Math" w:eastAsia="Times New Roman" w:hAnsi="Cambria Math" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><m:t>Б</m:t></m:r></m:oMath><w:r w:rsidRPr="00E1294A"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:tab/><w:t>(9)
+<w:tab w:val="center" w:pos="4676"/><w:tab w:val="right" w:pos="9638"/></w:tabs><w:spacing w:after="200" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Рисунок 3 – Диаграмма последовательности
+ПРИЛОЖЕНИЕ А ТЕХНИЧЕСКОЕ ЗАДАНИЕ
+МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ ТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ
+им. Н.Э. Баумана
+Кафедра «Системы обработки информации и управления»
+Утверждаю
+Заведующий кафедрой ИУ-5
+Согласовано
+Научный руководитель
+___________В.И. Терехов
+"__"__________2025 г.
+__________А.И. Канев
+"__"__________2025 г.
+Нарушения оксигенации
+Техническое задание  
+(вид документа)
+писчая бумага
+(вид носителя)
+x
+(количество листов)
+ИСПОЛНИТЕЛЬ: 
+Бердников Н.О.
+"__"___________2025 г.   
+Москва - 2025
+Цель
+Необходимо разработать систему, включающую в себя вебсервис, асинхронный вебсервис, вебприложение и нативное приложение, которая позволит рабочим формировать и отправлять заявки на оценку оксигенации организации.
+Назначение разработки
+Необходимо разработать систему, которая будет автоматизировать работу с заявками по услугам и предоставлять актуальную информацию о них. Рабочие смогут создавать заявки, выбирая услуги, указывая их роли в заявке и связанные показатели (например, заработную плату) при заполнении формы. Инженерымодераторы смогут принять заявку к рассмотрению, утвердить её либо отклонить. Рабочим будет доступен список их заявок, включающий активные и обработанные. Гости системы имеют доступ к описанию услуг и могут пройти регистрацию для последующей работы с заявками.
+Стадии и этапы разработки
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Создание дизайна приложения в figma на основе дизайна 1c.ru, развёртывание Minio
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="001D633A"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Создание базы данных для хранения информации об услугах и заявках на расчёт нагрузки (Postgres, gorm)
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Создание веб-сервиса со всей бизнес-логикой на Golang
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Добавление авторизации и swagger в веб-сервис с использованием Redis
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Разработка SPA на React для гостя
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Внедрение адаптивности, добавление менеджера состояний Redux Toolkit
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Разработка интерфейса рабочего на React 
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00512645"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t>Внедрение адаптивности и развертывание приложения
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:lastRenderedPageBreak/><w:t>Реализация нативного приложения на Tauri
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Развёртывание веб-приложения на GitHub Pages
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Подготовка всего набора документации (РПЗ, ТЗ и набор диаграмм)
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:after="240" w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Оформление git-репозитория на сервисе GitHub
+Требования к функциональным характеристикам
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Методы HTTP
+POST Зарегистрировать пользователя
+POST Аутентификация пользователя
+POST Деавторизация пользователя
+GET Получить список услуг
+GET Получить одно услугу
+POST Создать услугу
+POST Добавить услугу в заявку
+GET Получить корзину заявки на оценку оксигенации
+GET Получить список всех заявок по услугам
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>GET Получить одну заявку на оценку оксигенации
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>PUT Изменить поля заявки на оценку оксигенации
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>PUT Сформировать заявку по услугам
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>PUT Завершить заявку на оценку оксигенации
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>DELETE Удалить заявку по услугам
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>DELETE Удалить услугу из заявки
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00F911D3"><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="en-US"/></w:rPr><w:t>PUT Обновить данные об услуге в заявке
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:bookmarkStart w:id="13" w:name="_Toc185524659"/><w:bookmarkStart w:id="14" w:name="_Toc216284369"/><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Меню
+Главная – перенаправляет на страницу 4.6
+Список устройств – перенаправляет на страницу 4.7 (вызов метода 4.1.4)
+Список заявок – перенаправляет на страницу 4.10 (вызов метода 4.1.9)
+Зарегистрироваться – перенаправляет на страницу 4.3, доступно только гостям (вызов метода 4.1.1).
+Личный кабинет – перенаправляет на страницу 4.5, только для авторизованных пользователей (вызов метода 4.1.9).
+Войти – перенаправляет на страницу 4.4, только для гостей (вызов метода 4.1.2).
+Выйти – перенаправляет на страницу 4.6 (вызов метода 4.1.3), доступно только авторизованным пользователям.
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Регистрация
+<w:tab w:val="left" w:pos="2127"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00032A40"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Доступно только гостям
+<w:tab w:val="left" w:pos="2127"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00032A40"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Отображает форму регистрации
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Поле логина
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Поле пароля
+Действия
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Регистрация пользователя – (вызывается метод 4.1.1)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Вернуться к аутентификации – перенаправляет на страницу 4.4
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Аутентификация
+Доступно только гостям
+Отображает форму аутентификации
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Поле имени 
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Поле пароля
+Действия
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Войти – (вызывается метод 4.1.2)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Регистрация – перенаправляет на страницу 4.3
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Личный кабинет
+Доступно аутентифицированному пользователю
+Действия
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r w:rsidRPr="00493C3C"><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Просмотреть список своих заявок – (вызывается метод 4.1.9)
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:lastRenderedPageBreak/><w:t>Главная
+Доступна всем
+Отображается статическая информация
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Назначение сервиса
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Список услуг
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Список услуг
+Доступна всем
+Отображаются элементы карточек с услугами, вызывается метод 4.1.4
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Название
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Краткое описание
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Количество сотрудников
+Действия
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Поиск по названию – перенаправляет на страницу 4.7, (используется метод 4.1.4), с фильтрующим параметром
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Подробнее – перенаправляет на страницу 4.8 (используется метод 4.1.5)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Добавить – добавляет услугу в заявку на административное объединение, (вызывается метод 4.1.7), только аутентифицированные пользователи.
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Кнопка корзины – перенаправляет на страницу 4.9, только аутентифицированные пользователи. 
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Одно услугу
+Доступна всем
+Отображается подробная информация выбранного услуги, (вызывается метод 4.1.5)
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Одна заявка по услугам
+Доступно только аутентифицированным пользователям
+Отображает текущую заявку-черновик пользователя по услугам, (метод 4.1.8)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:lastRenderedPageBreak/><w:t xml:space="preserve">Список выбранных услуг
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Заголовок заявки-черновика
+Действия, доступные только в случае, если статус «draft»
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Убрать услугу – удаляет услугу из заявки по услугам, (вызывается метод 4.1.15)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Оформить – отправляет текущую заявку-черновик по услугам, (вызывается метод 4.1.12)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Удалить заявку – удаляет заявку-черновик на расчёт, (вызывается метод 4.1.14)
+<w:tab w:val="left" w:pos="3119"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Сохранить – вносит данные заявки на оценку оксигенации, (вызывается метод 4.1.11)
+<w:tab w:val="left" w:pos="1276"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="0" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Список заявок на расчёт
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Доступно аутентифицированному администратору
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Отображается список заявок по услугам (метод 4.1.9)
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Только заявки по услугам, созданные данным пользователем, если он не администратор
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Все поданные заявки по услугам в противном случае
+<w:tab w:val="left" w:pos="2268"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="709" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t>Действия
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Фильтрация – фильтрует заявки по услугам по дате создания или статусу, вызывается (метод 4.1.9)
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Выполнить – отмечает заявку по услугам как исполненную, выполняется метод 4.1.13, доступно только администратору
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Отклонить – отклоняет заявку по услугам, вызывается метод 4.1.13, доступно только администратору
+<w:tab w:val="left" w:pos="3261"/></w:tabs><w:spacing w:line="360" w:lineRule="auto"/><w:ind w:left="1418" w:firstLine="709"/><w:jc w:val="both"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="28"/><w:szCs w:val="28"/><w:lang w:val="ru-RU"/></w:rPr><w:t xml:space="preserve">Посмотреть подробную информацию о заявке по услугам – перенаправляет на страницу 4.9 (вызывается метод 4.1.10)
+Требования к составу и параметрам технических средств
+Сервер
+Процессор AMD Ryzen 5 5625U
+Оперативная память 16 Гб
+Свободное пространство на диске 10 Гб
+Клиент
+Процессор AMD Ryzen 5 5625U
+Оперативная память 16 Гб
+Свободное пространство на диске 10 Гб
+Требования к информационной и программной совместимости
+Серверная часть
+ОС Linux (6.4.12 и выше)
+Minio (RELEASE.2023-12-14T18-51-57Z)
+Redis (7.2)
+Golang (1.24)
+СУБД PostgreSQL (16)
+Gin (1.11.0)
+gORM (1.25.4)
+Docker & Docker Compose
+Доступ к интернету
+Клиентская часть
+Браузер (Safari 16.5.2, Firefox 121.0, Chrome 119.0.6045, Yandex 24.6.3.729, Opera 105.0.4970.16)
+ПРИЛОЖЕНИЕ Б СПИСОК HTTP МЕТОДОВ
+Таблица 1 – HTTP методы разрабатываемого веб-сервиса
+№
+Тип
+URL
+Описание
+Входные данные
+Выходные данные
+4.1.1
+POST
+/api/users/register
+Регистрация пользователя. Доступно всем.
+{ 
+login: string, password: string, is_moderator: boolean
+}
+{
+login: string, is_moderator: boolean 
+}
+4.1.2
+POST
+/api/users/login
+Аутентификация пользователя. Доступно всем.
+{
+login: string, password: string 
+}
+{
+token: string 
+}
+4.1.3
+POST
+/api/users/logout
+Деавторизация пользователя (добавление токена в blacklist). Доступно только авторизованным пользователям.
+jwt
+-
+4.1.4
+GET
+/api/services
+Получить список услуг (с optionalфильтром по названию). Доступно всем.
+Title: string 
+[
+{ 
+service_id: int, 
+is_deleted: bool, title: string, description: string, 
+photo_url: string, benchmark: int, 
+head: string, image_url: string, video: string, short_description: string 
+}
+]
+4.1.5
+GET
+/api/services/{id}
+Получить одно услугу по идентификатору. Доступно всем.
+id: int 
+{ 
+service_id: int, 
+is_deleted: bool, title: string, description: string, 
+photo_url: string, benchmark: int, 
+head: string, image_url: string, video: string, short_description: string 
+}
+4.1.6
+POST
+/api/services
+Создать услугу. Доступно только авторизованным модераторам (по токену).
+jwt
+{ 
+title: string, description: string, benchmark: int, 
+head: string, image_url: string, video: string, short_description: string 
+}
+{ 
+service_id: int, 
+is_deleted: bool, title: string, description: string, 
+photo_url: string, benchmark: int, 
+head: string, image_url: string, video: string, short_description: string 
+}
+4.1.7
+POST
+/api/request-services
+Добавить услугу в заявкучерновик пользователя. Доступно только авторизованным пользователям.
+Jwt
+service_id: int 
+{ request_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+4.1.8
+GET
+/api/oxygenation_request/cart
+Получить корзину заявки на оценку оксигенации (текущую заявкучерновик пользователя). Доступно только авторизованным пользователям.
+jwt
+{ 
+id: int, 
+has_draft: boolean, oxygenation_services_count: int, incomplete_items_count: int 
+} 
+4.1.9
+GET
+/api/oxygenation_request
+Получить список всех заявок по услугам с фильтрацией по датам и статусу. Доступно только авторизованным пользователям.
+Jwt
+status: string 
+from-date: YYYY-MM-DD,
+to-date: YYYY-MM-DD
+[
+{ request_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+]
+4.1.10
+GET
+/api/oxygenation_request/{id}
+Получить одну заявку на оценку оксигенации с перечнем услуг. Доступно только авторизованным пользователям (создателю или модератору).
+Jwt
+id: int
+{ oxygenation_request: 
+{ department_application_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int
+}, 
+items: [
+{ request_id: int, service_id: int, is_primary: int|null, position: int, role: string, result_coefficient: float|null 
+}
+]
+}
+4.1.11
+PUT
+/api/oxygenation_request/{id}
+Изменить поля заявки на оценку оксигенации (в основном заголовок и связанные данные). Доступно только авторизованным пользователям.
+Jwt
+id: int
+{ request_id: int, 
+status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int
+}
+{ request_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+4.1.12
+PUT
+/api/oxygenation_request/{id}/formoxygenation_request
+Сформировать заявку на оценку оксигенации (перевести из статуса «draft» в «formed»). Доступно только авторизованным пользователям.
+jwt
+id: int
+{ department_application_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+4.1.13
+PUT
+/api/oxygenation_requesttion/{id}/review
+Завершить заявку по услугам (подтвердить или отклонить). Доступно только авторизованным модераторам.
+jwt 
+id: int
+{ 
+status: string 
+}
+{ request_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+4.1.14
+DELETE
+/api/oxygenation_request/{id}
+Удалить (логически) заявку на оценку оксигенации. Доступно только авторизованным пользователям.
+Jwt
+id: int
+{ 
+message: string 
+}
+4.1.15
+DELETE
+/api/request-services/{request_id}/{service_id}
+Удалить услугу из заявки на оценку оксигенации. Доступно только авторизованным пользователям.
+jwt 
+service_id: int, request_id: int
+{ request_id: int, status: string, created_at: datetime, creator_login: string, moderator_login: string|null, forming_date: datetime|null, finish_date: datetime|null, title: string|null, incomplete_items_count: int 
+}
+4.1.16
+PUT
+/api/request-services/{request_id}/{service_id}
+Обновить данные об услуге в заявке по услугам (роль, коэффициент, порядок; либо сдвиг вверх/вниз). Доступно только авторизованным пользователям.
+jwt 
+service_id: int, request_id: int
+{ request_id: int, service_id: int, is_primary: int|null, position: int, role: string, 
+result_coefficient: float|null, direction: "up"|"down"|"" 
+}
+{ request_id: int, service_id: int, is_primary: int|null, position: int, role: string, result_coefficient: float|null } 

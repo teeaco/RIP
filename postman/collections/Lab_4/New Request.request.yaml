@@ -1,0 +1,21 @@
+$kind: http-request
+name: New Request
+url: "{{base_url}}/api/oxygenation_request/{{request_id}}"
+method: PUT
+headers:
+  - name: Content-Type
+    value: application/json
+  - name: Authorization
+    value: Bearer {{creator_token}}
+body:
+  type: json
+  content: "{\r
+
+    \  \"patient_name\":\"Demo Patient\",\r
+
+    \  \"blood_value_pao2\":90.1,\r
+
+    \  \"fio2_value\":0.5\r
+
+    }\r\n"
+order: 2922238508418114

@@ -1,4 +1,12 @@
 $kind: collection
 name: Lab_3
 variables:
-  new_login: ""
+  base_url: "http://localhost:8095"
+  creator_token: ""
+  moderator_token: ""
+  draft_id: ""
+  request_id: ""
+  service_id_1: "1"
+  service_id_2: "2"
+  new_login: "creator_demo_20260322"
+  new_password: "qwerty123"

@@ -1,28 +1,34 @@
 package rest
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"rip/internal/app/actor"
 	"rip/internal/app/repository"
+	"rip/internal/app/security"
 	"rip/internal/app/storage"
 )
 
 type Handler struct {
 	repo     *repository.Repository
 	uploader storage.Uploader
+	security *security.Service
 }
 
-func NewHandler(repo *repository.Repository, uploader storage.Uploader) *Handler {
-	return &Handler{repo: repo, uploader: uploader}
+func NewHandler(repo *repository.Repository, uploader storage.Uploader, securityService *security.Service) *Handler {
+	return &Handler{repo: repo, uploader: uploader, security: securityService}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/swagger", h.SwaggerUI)
+	mux.HandleFunc("GET /api/swagger/openapi.json", h.SwaggerOpenAPI)
+
 	mux.HandleFunc("GET /api/services", h.GetServices)
 	mux.HandleFunc("GET /api/services/{id}", h.GetServiceByID)
 	mux.HandleFunc("POST /api/services", h.CreateService)
@@ -66,9 +72,7 @@ type requestServiceResponse struct {
 	ImageURL          string `json:"image_url,omitempty"`
 	VideoURL          string `json:"video_url,omitempty"`
 	Benchmark         string `json:"benchmark,omitempty"`
-	Quantity          int    `json:"quantity"`
-	Position          int    `json:"position"`
-	IsPrimary         bool   `json:"is_primary"`
+	DoctorComment     string `json:"doctor_comment,omitempty"`
 	ResultCoefficient any    `json:"result_coefficient"`
 }
 
@@ -111,9 +115,7 @@ type addRequestServicePayload struct {
 }
 
 type updateRequestServicePayload struct {
-	Quantity  *int  `json:"quantity"`
-	Position  *int  `json:"position"`
-	IsPrimary *bool `json:"is_primary"`
+	DoctorComment *string `json:"doctor_comment"`
 }
 
 type reviewRequestPayload struct {
@@ -154,6 +156,10 @@ func (h *Handler) GetServiceByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateService(w http.ResponseWriter, r *http.Request) {
+	if _, ok := h.requireAuthenticated(w, r); !ok {
+		return
+	}
+
 	if h.uploader == nil {
 		writeError(w, http.StatusServiceUnavailable, "media storage is unavailable")
 		return
@@ -191,6 +197,11 @@ func (h *Handler) CreateService(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddServiceToDraft(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	var payload addRequestServicePayload
 	if err := decodeJSON(r, &payload); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json payload")
@@ -201,14 +212,13 @@ func (h *Handler) AddServiceToDraft(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current := actor.Current()
-	requestID, err := h.repo.AddServiceToDraft(current.CreatorID, payload.ServiceID)
+	requestID, err := h.repo.AddServiceToDraft(principal.UserID, payload.ServiceID)
 	if err != nil {
 		writeRepositoryError(w, err)
 		return
 	}
 
-	cart, err := h.repo.GetDraftCart(current.CreatorID)
+	cart, err := h.repo.GetDraftCart(principal.UserID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "cart unavailable")
 		return
@@ -225,6 +235,11 @@ func (h *Handler) AddServiceToDraft(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateRequestService(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	requestID, err := parsePathUint(r, "requestID")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
@@ -242,11 +257,8 @@ func (h *Handler) UpdateRequestService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current := actor.Current()
-	item, err := h.repo.UpdateRequestServiceInDraft(current.CreatorID, requestID, serviceID, repository.RequestServiceUpdateInput{
-		Quantity:  payload.Quantity,
-		Position:  payload.Position,
-		IsPrimary: payload.IsPrimary,
+	item, err := h.repo.UpdateRequestServiceInDraft(principal.UserID, requestID, serviceID, repository.RequestServiceUpdateInput{
+		DoctorComment: payload.DoctorComment,
 	})
 	if err != nil {
 		writeRepositoryError(w, err)
@@ -257,6 +269,11 @@ func (h *Handler) UpdateRequestService(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteRequestService(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	requestID, err := parsePathUint(r, "requestID")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
@@ -268,8 +285,7 @@ func (h *Handler) DeleteRequestService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current := actor.Current()
-	if err := h.repo.RemoveRequestServiceFromDraft(current.CreatorID, requestID, serviceID); err != nil {
+	if err := h.repo.RemoveRequestServiceFromDraft(principal.UserID, requestID, serviceID); err != nil {
 		writeRepositoryError(w, err)
 		return
 	}
@@ -278,8 +294,12 @@ func (h *Handler) DeleteRequestService(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetCart(w http.ResponseWriter, r *http.Request) {
-	current := actor.Current()
-	cart, err := h.repo.GetDraftCart(current.CreatorID)
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
+	cart, err := h.repo.GetDraftCart(principal.UserID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "cart unavailable")
 		return
@@ -293,10 +313,20 @@ func (h *Handler) GetCart(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListRequests(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	filter, err := parseRequestListFilter(r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	if principal.Role == security.RoleCreator {
+		userID := principal.UserID
+		filter.CreatorID = &userID
 	}
 
 	items, err := h.repo.ListRequestsForAPI(filter)
@@ -314,14 +344,23 @@ func (h *Handler) ListRequests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetRequestByID(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := parsePathUint(r, "id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
 		return
 	}
 
-	current := actor.Current()
-	request, err := h.repo.GetRequestByIDWithRelations(current.CreatorID, id)
+	var request repository.OxygenationRequest
+	if principal.Role == security.RoleModerator {
+		request, err = h.repo.GetRequestByIDForAPI(id)
+	} else {
+		request, err = h.repo.GetRequestByIDWithRelations(principal.UserID, id)
+	}
 	if err != nil {
 		writeRepositoryError(w, err)
 		return
@@ -337,6 +376,11 @@ func (h *Handler) GetRequestByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := parsePathUint(r, "id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
@@ -349,8 +393,7 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current := actor.Current()
-	request, err := h.repo.UpdateRequestFields(current.CreatorID, id, repository.RequestUpdateInput{
+	request, err := h.repo.UpdateRequestFields(principal.UserID, id, repository.RequestUpdateInput{
 		PatientName:    payload.PatientName,
 		BloodValuePaO2: payload.BloodValuePaO2,
 		FiO2Value:      payload.FiO2Value,
@@ -370,14 +413,18 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FormRequest(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := parsePathUint(r, "id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
 		return
 	}
 
-	current := actor.Current()
-	request, err := h.repo.FormDraftRequest(current.CreatorID, id)
+	request, err := h.repo.FormDraftRequest(principal.UserID, id)
 	if err != nil {
 		writeRepositoryError(w, err)
 		return
@@ -393,6 +440,15 @@ func (h *Handler) FormRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ReviewRequest(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+	if principal.Role != security.RoleModerator {
+		writeError(w, http.StatusForbidden, "moderator role required")
+		return
+	}
+
 	id, err := parsePathUint(r, "id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
@@ -405,8 +461,7 @@ func (h *Handler) ReviewRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current := actor.Current()
-	request, err := h.repo.ReviewFormedRequest(id, current.ModeratorID, payload.Action)
+	request, err := h.repo.ReviewFormedRequest(id, principal.UserID, payload.Action)
 	if err != nil {
 		writeRepositoryError(w, err)
 		return
@@ -422,14 +477,18 @@ func (h *Handler) ReviewRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteRequest(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := parsePathUint(r, "id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request id")
 		return
 	}
 
-	current := actor.Current()
-	if err := h.repo.DeleteDraftRequest(current.CreatorID, id); err != nil {
+	if err := h.repo.DeleteDraftRequest(principal.UserID, id); err != nil {
 		writeRepositoryError(w, err)
 		return
 	}
@@ -459,6 +518,11 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	if h.security == nil {
+		writeError(w, http.StatusServiceUnavailable, "auth service is unavailable")
+		return
+	}
+
 	var payload loginRequest
 	if err := decodeJSON(r, &payload); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json payload")
@@ -471,21 +535,41 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, expiresAt, principal, err := h.security.Login(r.Context(), user.ID, user.Login, user.Role)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "auth failed")
+		return
+	}
+
 	writeJSON(w, http.StatusOK, map[string]any{
-		"message": "auth stub success",
-		"token":   "stub-token-" + strconv.FormatUint(uint64(user.ID), 10),
+		"token_type": "Bearer",
+		"token":      token,
+		"expires_at": expiresAt.Format(time.RFC3339),
 		"user": map[string]any{
-			"id":        user.ID,
-			"login":     user.Login,
-			"full_name": user.FullName,
-			"role":      user.Role,
+			"id":         principal.UserID,
+			"login":      principal.Login,
+			"full_name":  user.FullName,
+			"role":       principal.Role,
+			"session_id": principal.SessionID,
 		},
 	})
 }
 
 func (h *Handler) LogoutUser(w http.ResponseWriter, r *http.Request) {
+	principal, ok := h.requireAuthenticated(w, r)
+	if !ok {
+		return
+	}
+
+	if h.security != nil {
+		if err := h.security.Logout(r.Context(), principal); err != nil {
+			writeError(w, http.StatusInternalServerError, "logout failed")
+			return
+		}
+	}
+
 	writeJSON(w, http.StatusOK, map[string]any{
-		"message": "logout stub success",
+		"message": "logout success",
 	})
 }
 
@@ -588,9 +672,7 @@ func serializeRequestService(item repository.RequestService) requestServiceRespo
 		ImageURL:          nullableStringToValue(item.Service.ImageURL),
 		VideoURL:          nullableStringToValue(item.Service.VideoURL),
 		Benchmark:         item.Service.Benchmark,
-		Quantity:          item.Quantity,
-		Position:          item.Position,
-		IsPrimary:         item.IsPrimary,
+		DoctorComment:     nullableStringToValue(item.DoctorComment),
 		ResultCoefficient: nullableFloatToAny(item.ResultCoefficient),
 	}
 }
@@ -629,13 +711,6 @@ func requestResultInfo(request repository.OxygenationRequest) (string, *float64)
 	if len(request.Items) == 0 {
 		return "", nil
 	}
-
-	for _, item := range request.Items {
-		if item.IsPrimary {
-			return item.Service.Name, item.ResultCoefficient
-		}
-	}
-
 	first := request.Items[0]
 	return first.Service.Name, first.ResultCoefficient
 }
@@ -657,9 +732,42 @@ func countCalculatedResults(items []repository.RequestService) int {
 	return count
 }
 
+func (h *Handler) requireAuthenticated(w http.ResponseWriter, r *http.Request) (security.Principal, bool) {
+	if h.security == nil {
+		writeError(w, http.StatusServiceUnavailable, "auth service is unavailable")
+		return security.Principal{}, false
+	}
+
+	authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
+	if authHeader == "" {
+		writeError(w, http.StatusUnauthorized, "authorization header is required")
+		return security.Principal{}, false
+	}
+
+	principal, err := h.security.AuthenticateBearer(r.Context(), authHeader)
+	if err != nil {
+		switch {
+		case errors.Is(err, security.ErrInvalidToken), errors.Is(err, security.ErrSessionGone):
+			writeError(w, http.StatusUnauthorized, "invalid token")
+		default:
+			writeError(w, http.StatusInternalServerError, "auth failed")
+		}
+		return security.Principal{}, false
+	}
+
+	return principal, true
+}
+
 func decodeJSON(r *http.Request, target any) error {
 	defer r.Body.Close()
-	decoder := json.NewDecoder(r.Body)
+	payload, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	payload = bytes.TrimSpace(payload)
+	payload = bytes.TrimPrefix(payload, []byte{0xEF, 0xBB, 0xBF})
+
+	decoder := json.NewDecoder(bytes.NewReader(payload))
 	decoder.DisallowUnknownFields()
 	return decoder.Decode(target)
 }

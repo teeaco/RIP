@@ -1,0 +1,5 @@
+$kind: http-request
+name: "02 cart get"
+url: "{{base_url}}/api/oxygenation_request/cart"
+method: GET
+order: 2000

@@ -1,0 +1,13 @@
+$kind: http-request
+name: "10 update m-m"
+url: "{{base_url}}/api/request-services/{{request_id}}/{{service_id_2}}"
+method: PUT
+headers:
+  - name: Content-Type
+    value: application/json
+  - name: Authorization
+    value: Bearer {{creator_token}}
+body:
+  type: json
+  content: '{"doctor_comment":"Сомнительная динамика, требуется контроль газов крови"}'
+order: 10000

@@ -1,5 +1,0 @@
-$kind: http-request
-name: "2"
-url: "{{base_url}}/oxygenation_request/cart"
-method: GET
-order: 4000

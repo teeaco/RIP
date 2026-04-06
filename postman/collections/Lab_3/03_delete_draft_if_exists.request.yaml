@@ -1,0 +1,5 @@
+$kind: http-request
+name: "03 delete draft if exists"
+url: "{{base_url}}/api/oxygenation_request/{{draft_id}}"
+method: DELETE
+order: 3000

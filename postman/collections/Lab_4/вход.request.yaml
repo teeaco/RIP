@@ -1,0 +1,17 @@
+$kind: http-request
+name: вход
+url: "{{base_url}}/api/users/login"
+method: POST
+headers:
+  - name: Content-Type
+    value: application/json
+body:
+  type: json
+  content: "{\r
+
+    \  \"login\": \"creator\",\r
+
+    \  \"password\": \"creator\"\r
+
+    }\r\n"
+order: 10865964091520

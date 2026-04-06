@@ -23,8 +23,10 @@ func TestSchemaLegacyColumnsRemoved(t *testing.T) {
 		},
 		"oxygenation_request_services": {
 			"id",
-			"doctor_comment",
 			"created_at",
+			"quantity",
+			"position",
+			"is_primary",
 		},
 	}
 
@@ -66,6 +68,21 @@ func TestSchemaLegacyColumnsRemoved(t *testing.T) {
 		primaryKeyColumns[0] != "request_id" ||
 		primaryKeyColumns[1] != "service_id" {
 		t.Fatalf("unexpected primary key for oxygenation_request_services: %v", primaryKeyColumns)
+	}
+
+	var doctorCommentCount int64
+	err = repo.db.Raw(`
+		SELECT COUNT(*)
+		FROM information_schema.columns
+		WHERE table_schema = 'public'
+			AND table_name = 'oxygenation_request_services'
+			AND column_name = 'doctor_comment'
+	`).Scan(&doctorCommentCount).Error
+	if err != nil {
+		t.Fatalf("failed to inspect doctor_comment column: %v", err)
+	}
+	if doctorCommentCount != 1 {
+		t.Fatalf("expected oxygenation_request_services.doctor_comment to exist")
 	}
 }
 
@@ -115,9 +132,6 @@ func TestRepositoryAddDeleteAndSearchFlow(t *testing.T) {
 	}
 	if len(request.Items) != 1 {
 		t.Fatalf("expected 1 request item, got %d", len(request.Items))
-	}
-	if request.Items[0].Quantity != 2 {
-		t.Fatalf("expected quantity=2 after second add, got %d", request.Items[0].Quantity)
 	}
 
 	expectedCoefficient := calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)

@@ -1,0 +1,237 @@
+LAB 3 (2026): IPsec L2L between Campus ASA 5505 and branches
+
+Assumed addressing from your outputs:
+- Campus outside: 134.65.5.17/28
+- Branch1 outside: 134.65.5.18/28, Branch1 LAN: 195.65.5.0/24
+- Branch2 outside: 134.65.5.30/28, Branch2 LAN: 195.65.55.0/24
+- Campus private network for VPN: 172.65.0.0/17
+- PSK: bronnikova65
+
+Important for Packet Tracer ASA:
+- Some real ASA commands are missing (packet-tracer, clear crypto ...).
+- Use only supported commands and verify by show crypto isakmp/ipsec sa.
+- Do not type comments after commands on the same line.
+
+==================================================
+1) CAMPUS ASA
+==================================================
+enable
+conf t
+
+hostname ASA-CAMPUS
+
+! Outside (verify interface mapping in your PT topology)
+interface Ethernet0/0
+ switchport access vlan 2
+ no shut
+
+interface Vlan2
+ nameif outside
+ security-level 0
+ ip address 134.65.5.17 255.255.255.240
+
+! Keep your existing inside config if already correct.
+! If needed, ensure inside interface is up and routed to campus LAN.
+interface Vlan1
+ nameif inside
+ security-level 100
+ no shut
+
+! Objects
+object network CAMPUS_NETWORK
+ subnet 172.65.0.0 255.255.128.0
+object network BRANCH01_NETWORK
+ subnet 195.65.5.0 255.255.255.0
+object network BRANCH02_NETWORK
+ subnet 195.65.55.0 255.255.255.0
+
+! Interesting traffic ACLs (IP, not only ICMP/TCP)
+access-list BRANCH01_TRAFFIC extended permit ip object CAMPUS_NETWORK object BRANCH01_NETWORK
+access-list BRANCH02_TRAFFIC extended permit ip object CAMPUS_NETWORK object BRANCH02_NETWORK
+
+! NAT exemption for VPN traffic (8.4+ syntax)
+nat (inside,outside) source static CAMPUS_NETWORK CAMPUS_NETWORK destination static BRANCH01_NETWORK BRANCH01_NETWORK no-proxy-arp route-lookup
+nat (inside,outside) source static CAMPUS_NETWORK CAMPUS_NETWORK destination static BRANCH02_NETWORK BRANCH02_NETWORK no-proxy-arp route-lookup
+
+! Routes to branches via outside peers
+route outside 195.65.5.0 255.255.255.0 134.65.5.18
+route outside 195.65.55.0 255.255.255.0 134.65.5.30
+
+! IKEv1 / IPsec
+crypto ikev1 enable outside
+crypto ikev1 policy 10
+ authentication pre-share
+ encryption aes
+ hash sha
+ group 2
+ lifetime 86400
+
+crypto ipsec ikev1 transform-set L2L esp-aes esp-sha-hmac
+
+crypto map BRANCH1 10 match address BRANCH01_TRAFFIC
+crypto map BRANCH1 10 set peer 134.65.5.18
+crypto map BRANCH1 10 set security-association lifetime seconds 86400
+crypto map BRANCH1 10 set ikev1 transform-set L2L
+
+crypto map BRANCH1 20 match address BRANCH02_TRAFFIC
+crypto map BRANCH1 20 set peer 134.65.5.30
+crypto map BRANCH1 20 set security-association lifetime seconds 86400
+crypto map BRANCH1 20 set ikev1 transform-set L2L
+
+crypto map BRANCH1 interface outside
+
+tunnel-group 134.65.5.18 type ipsec-l2l
+tunnel-group 134.65.5.18 ipsec-attributes
+ ikev1 pre-shared-key bronnikova65
+
+tunnel-group 134.65.5.30 type ipsec-l2l
+tunnel-group 134.65.5.30 ipsec-attributes
+ ikev1 pre-shared-key bronnikova65
+
+end
+write mem
+
+==================================================
+2) BRANCH1 ASA
+==================================================
+enable
+conf t
+
+hostname ASA-BRANCH1
+
+interface Ethernet0/0
+ switchport access vlan 2
+ no shut
+interface Ethernet0/1
+ switchport access vlan 1
+ no shut
+
+interface Vlan2
+ nameif outside
+ security-level 0
+ ip address 134.65.5.18 255.255.255.240
+
+interface Vlan1
+ nameif inside
+ security-level 100
+ ip address 195.65.5.1 255.255.255.0
+
+object network BRANCH01_NETWORK
+ subnet 195.65.5.0 255.255.255.0
+object network CAMPUS_NETWORK
+ subnet 172.65.0.0 255.255.128.0
+
+access-list PRIVATE_TRAFFIC extended permit ip object BRANCH01_NETWORK object CAMPUS_NETWORK
+
+nat (inside,outside) source static BRANCH01_NETWORK BRANCH01_NETWORK destination static CAMPUS_NETWORK CAMPUS_NETWORK no-proxy-arp route-lookup
+
+route outside 0.0.0.0 0.0.0.0 134.65.5.17
+route outside 172.65.0.0 255.255.128.0 134.65.5.17
+
+crypto ikev1 enable outside
+crypto ikev1 policy 10
+ authentication pre-share
+ encryption aes
+ hash sha
+ group 2
+ lifetime 86400
+
+crypto ipsec ikev1 transform-set L2L esp-aes esp-sha-hmac
+
+crypto map BRANCH1 10 match address PRIVATE_TRAFFIC
+crypto map BRANCH1 10 set peer 134.65.5.17
+crypto map BRANCH1 10 set security-association lifetime seconds 86400
+crypto map BRANCH1 10 set ikev1 transform-set L2L
+crypto map BRANCH1 interface outside
+
+tunnel-group 134.65.5.17 type ipsec-l2l
+tunnel-group 134.65.5.17 ipsec-attributes
+ ikev1 pre-shared-key bronnikova65
+
+end
+write mem
+
+==================================================
+3) BRANCH2 ASA
+==================================================
+enable
+conf t
+
+hostname ASA-BRANCH2
+
+interface Ethernet0/0
+ switchport access vlan 2
+ no shut
+interface Ethernet0/1
+ switchport access vlan 1
+ no shut
+
+interface Vlan2
+ nameif outside
+ security-level 0
+ ip address 134.65.5.30 255.255.255.240
+
+interface Vlan1
+ nameif inside
+ security-level 100
+ ip address 195.65.55.1 255.255.255.0
+
+object network BRANCH02_NETWORK
+ subnet 195.65.55.0 255.255.255.0
+object network CAMPUS_NETWORK
+ subnet 172.65.0.0 255.255.128.0
+
+access-list PRIVATE_TRAFFIC extended permit ip object BRANCH02_NETWORK object CAMPUS_NETWORK
+
+nat (inside,outside) source static BRANCH02_NETWORK BRANCH02_NETWORK destination static CAMPUS_NETWORK CAMPUS_NETWORK no-proxy-arp route-lookup
+
+route outside 0.0.0.0 0.0.0.0 134.65.5.17
+route outside 172.65.0.0 255.255.128.0 134.65.5.17
+
+crypto ikev1 enable outside
+crypto ikev1 policy 10
+ authentication pre-share
+ encryption aes
+ hash sha
+ group 2
+ lifetime 86400
+
+crypto ipsec ikev1 transform-set L2L esp-aes esp-sha-hmac
+
+crypto map BRANCH1 10 match address PRIVATE_TRAFFIC
+crypto map BRANCH1 10 set peer 134.65.5.17
+crypto map BRANCH1 10 set security-association lifetime seconds 86400
+crypto map BRANCH1 10 set ikev1 transform-set L2L
+crypto map BRANCH1 interface outside
+
+tunnel-group 134.65.5.17 type ipsec-l2l
+tunnel-group 134.65.5.17 ipsec-attributes
+ ikev1 pre-shared-key bronnikova65
+
+end
+write mem
+
+==================================================
+4) Verification
+==================================================
+Run on each ASA:
+
+show run | i crypto ikev1 enable|crypto map|transform-set|pre-shared-key
+show access-list
+show nat
+show route
+show crypto isakmp sa
+show crypto ipsec sa
+
+Then generate traffic from LAN hosts (important):
+- Branch1 PC (195.65.5.x) -> Campus host (172.65.x.x)
+- Branch2 PC (195.65.55.x) -> Campus host (172.65.x.x)
+
+Expected:
+- IKEv1 state goes to QM_IDLE
+- IPsec SAs appear and encaps/decaps counters increase
+
+If IKE stays in MM_NO_STATE:
+- check cabling and VLAN membership on E0/0 (outside) on both sides
+- check that peer outside IP is reachable at L2/L3
+- check matching PSK and ikev1 policy on both sides

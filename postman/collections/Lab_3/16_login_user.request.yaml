@@ -1,0 +1,8 @@
+$kind: http-request
+name: "16 login user"
+url: "{{base_url}}/api/users/login"
+method: POST
+body:
+  type: json
+  content: '{"login":"{{new_login}}","password":"{{new_password}}"}'
+order: 16000

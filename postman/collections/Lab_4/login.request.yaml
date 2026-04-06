@@ -1,0 +1,8 @@
+$kind: http-request
+name: login
+url: POST {{base_url}}/api/users/login
+method: POST
+body:
+  type: json
+  content: '{"login":"creator","password":"creator"}'
+order: 4494135998983777

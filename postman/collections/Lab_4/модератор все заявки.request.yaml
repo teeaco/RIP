@@ -1,0 +1,8 @@
+$kind: http-request
+name: модератор все заявки
+url: "{{base_url}}/api/oxygenation_request"
+method: GET
+headers:
+  - name: Authorization
+    value: Bearer {{moderator_token}}
+order: 4487925451890160

@@ -20,9 +20,7 @@ type ServiceCreateInput struct {
 }
 
 type RequestServiceUpdateInput struct {
-	Quantity  *int
-	Position  *int
-	IsPrimary *bool
+	DoctorComment *string
 }
 
 type RequestUpdateInput struct {
@@ -35,6 +33,7 @@ type RequestListFilter struct {
 	Status     *RequestStatus
 	FormedFrom *time.Time
 	FormedTo   *time.Time
+	CreatorID  *uint
 }
 
 type RequestListItem struct {
@@ -76,7 +75,31 @@ func (r *Repository) GetRequestByIDWithRelations(userID, requestID uint) (Oxygen
 		Preload("Creator").
 		Preload("Moderator").
 		Preload("Items", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position asc")
+			return db.Order("service_id asc")
+		}).
+		Preload("Items.Service").
+		First(&request).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return OxygenationRequest{}, ErrRequestNotFound
+		}
+		return OxygenationRequest{}, err
+	}
+
+	if request.Status == RequestStatusDeleted {
+		return OxygenationRequest{}, ErrRequestDeleted
+	}
+
+	return request, nil
+}
+
+func (r *Repository) GetRequestByIDForAPI(requestID uint) (OxygenationRequest, error) {
+	var request OxygenationRequest
+	if err := r.db.
+		Where("id = ?", requestID).
+		Preload("Creator").
+		Preload("Moderator").
+		Preload("Items", func(db *gorm.DB) *gorm.DB {
+			return db.Order("service_id asc")
 		}).
 		Preload("Items.Service").
 		First(&request).Error; err != nil {
@@ -98,7 +121,7 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 		Preload("Creator").
 		Preload("Moderator").
 		Preload("Items", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position asc")
+			return db.Order("service_id asc")
 		}).
 		Preload("Items.Service").
 		Where("status NOT IN ?", []RequestStatus{RequestStatusDraft, RequestStatusDeleted}).
@@ -112,6 +135,9 @@ func (r *Repository) ListRequestsForAPI(filter RequestListFilter) ([]RequestList
 	}
 	if filter.FormedTo != nil {
 		query = query.Where("formed_at <= ?", *filter.FormedTo)
+	}
+	if filter.CreatorID != nil {
+		query = query.Where("creator_id = ?", *filter.CreatorID)
 	}
 
 	var requests []OxygenationRequest
@@ -317,35 +343,11 @@ func (r *Repository) UpdateRequestServiceInDraft(userID, requestID, serviceID ui
 			return err
 		}
 
-		if input.Quantity != nil {
-			if *input.Quantity <= 0 {
-				return ErrValidationFailed
-			}
-			item.Quantity = *input.Quantity
-		}
-		if input.Position != nil {
-			if *input.Position <= 0 {
-				return ErrValidationFailed
-			}
-			item.Position = *input.Position
-		}
-
-		if input.IsPrimary != nil {
-			if *input.IsPrimary {
-				if err := tx.Model(&RequestService{}).Where("request_id = ?", requestID).Update("is_primary", false).Error; err != nil {
-					return err
-				}
-				item.IsPrimary = true
-			} else {
-				item.IsPrimary = false
-			}
+		if input.DoctorComment != nil {
+			item.DoctorComment = normalizeNullableString(input.DoctorComment)
 		}
 
 		if err := tx.Save(&item).Error; err != nil {
-			return err
-		}
-
-		if err := ensurePrimary(tx, requestID); err != nil {
 			return err
 		}
 
@@ -393,10 +395,6 @@ func (r *Repository) RemoveRequestServiceFromDraft(userID, requestID, serviceID 
 
 		if count == 0 {
 			return nil
-		}
-
-		if err := ensurePrimary(tx, requestID); err != nil {
-			return err
 		}
 
 		return tx.Model(&RequestService{}).
@@ -490,7 +488,7 @@ func lockRequestByCreatorWithItems(tx *gorm.DB, userID, requestID uint) (Oxygena
 	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ? AND creator_id = ?", requestID, userID).
 		Preload("Items", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position asc")
+			return db.Order("service_id asc")
 		}).
 		Preload("Items.Service").
 		First(&request).Error; err != nil {
@@ -510,7 +508,7 @@ func lockRequestByIDWithItems(tx *gorm.DB, requestID uint) (OxygenationRequest, 
 	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ?", requestID).
 		Preload("Items", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position asc")
+			return db.Order("service_id asc")
 		}).
 		Preload("Items.Service").
 		First(&request).Error; err != nil {
@@ -523,30 +521,4 @@ func lockRequestByIDWithItems(tx *gorm.DB, requestID uint) (OxygenationRequest, 
 		return OxygenationRequest{}, ErrRequestDeleted
 	}
 	return request, nil
-}
-
-func ensurePrimary(tx *gorm.DB, requestID uint) error {
-	var count int64
-	if err := tx.Model(&RequestService{}).
-		Where("request_id = ? AND is_primary = TRUE", requestID).
-		Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-
-	var first RequestService
-	if err := tx.Where("request_id = ?", requestID).
-		Order("position asc, service_id asc").
-		First(&first).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	return tx.Model(&RequestService{}).
-		Where("request_id = ? AND service_id = ?", first.RequestID, first.ServiceID).
-		Update("is_primary", true).Error
 }

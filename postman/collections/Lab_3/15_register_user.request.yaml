@@ -1,0 +1,8 @@
+$kind: http-request
+name: "15 register user"
+url: "{{base_url}}/api/users/register"
+method: POST
+body:
+  type: json
+  content: '{"login":"{{new_login}}","full_name":"Новый Пользователь","password":"{{new_password}}"}'
+order: 15000

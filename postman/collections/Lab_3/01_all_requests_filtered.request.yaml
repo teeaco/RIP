@@ -1,0 +1,9 @@
+$kind: http-request
+name: "01 all requests filtered"
+url: "{{base_url}}/api/oxygenation_request?status=completed&formed_from=2026-01-01&formed_to=2026-12-31"
+method: GET
+queryParams:
+  status: completed
+  formed_from: 2026-01-01
+  formed_to: 2026-12-31
+order: 1000

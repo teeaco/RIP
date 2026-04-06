@@ -1,8 +1,0 @@
-$kind: http-request
-name: "7"
-url: "{{base_url}}/request-services"
-method: POST
-body:
-  type: json
-  content: "{\"service_id\":2}\r\n"
-order: 8249

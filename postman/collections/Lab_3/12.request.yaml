@@ -1,8 +1,0 @@
-$kind: http-request
-name: "12"
-url: "{{base_url}}/oxygenation_request/{{request_id}}/review"
-method: PUT
-body:
-  type: json
-  content: "{\"action\":\"complete\"}\r\n"
-order: 4219150774573774

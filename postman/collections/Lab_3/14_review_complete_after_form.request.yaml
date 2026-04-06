@@ -1,0 +1,8 @@
+$kind: http-request
+name: "14 review complete after form"
+url: "{{base_url}}/api/oxygenation_request/{{request_id}}/review"
+method: PUT
+body:
+  type: json
+  content: '{"action":"complete"}'
+order: 14000
