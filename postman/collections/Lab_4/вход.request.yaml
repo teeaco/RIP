@@ -1,6 +1,6 @@
-$kind: http-request
-name: вход
-url: "{{base_url}}/api/users/login"
+﻿$kind: http-request
+name: РІС…РѕРґ
+url: "http://localhost:8095/api/users/login"
 method: POST
 headers:
   - name: Content-Type
@@ -15,3 +15,4 @@ body:
 
     }\r\n"
 order: 10865964091520
+

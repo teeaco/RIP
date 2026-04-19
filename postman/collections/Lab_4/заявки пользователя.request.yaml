@@ -1,5 +1,6 @@
-$kind: http-request
-name: заявки пользователя
+﻿$kind: http-request
+name: Р·Р°СЏРІРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 url: ""
 method: GET
 order: 4503391697376460
+

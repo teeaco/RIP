@@ -1,5 +1,6 @@
-$kind: http-request
-name: гость список заявок
-url: "{{base_url}}/api/oxygenation_request"
+﻿$kind: http-request
+name: РіРѕСЃС‚СЊ СЃРїРёСЃРѕРє Р·Р°СЏРІРѕРє
+url: "http://localhost:8095/api/oxygenation_request"
 method: GET
 order: 1774264343018
+

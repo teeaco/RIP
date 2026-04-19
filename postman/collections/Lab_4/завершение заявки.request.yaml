@@ -1,9 +1,10 @@
-$kind: http-request
-name: завершение заявки
+﻿$kind: http-request
+name: Р·Р°РІРµСЂС€РµРЅРёРµ Р·Р°СЏРІРєРё
 url: |2
-   {{base_url}}/api/oxygenation_request/{{request_id}}/form
+   http://localhost:8095/api/oxygenation_request/101/form
 method: PUT
 headers:
   - name: Authorization
-    value: Bearer {{creator_token}}
+    value: Bearer <CREATOR_TOKEN_FROM_LOGIN>
 order: 2991835708347995
+

@@ -1,8 +1,9 @@
-$kind: http-request
+﻿$kind: http-request
 name: login
-url: POST {{base_url}}/api/users/login
+url: POST http://localhost:8095/api/users/login
 method: POST
 body:
   type: json
   content: '{"login":"creator","password":"creator"}'
 order: 4494135998983777
+

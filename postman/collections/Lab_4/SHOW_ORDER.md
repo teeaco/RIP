@@ -1,100 +1,116 @@
-# Lab 4 Demo Order (JWT only, no cookies)
+# Lab 4 Demo Order (Manual Headers, No Postman Variables)
 
-Base URL:
+Base URL for all requests:
 
 `http://localhost:8095`
 
-## 1. Swagger in incognito
+## Swagger (incognito)
 
-1. Open `GET /api/swagger`.
-2. Call `POST /api/users/login` in Swagger:
-   - creator: `{"login":"creator","password":"creator"}`
-   - moderator: `{"login":"moderator","password":"moderator"}`
-3. Copy `token` from response.
-4. In Swagger click `Authorize` and paste:
-   - `Bearer <token>`
-5. Call `GET /api/oxygenation_request`.
+1. Open `http://localhost:8095/api/swagger`.
+2. Run `POST /api/users/login` for creator:
+   `{"login":"creator","password":"creator"}`
+3. Run `POST /api/users/login` for moderator:
+   `{"login":"moderator","password":"moderator"}`
+4. Copy `token` values from both responses.
+5. In Swagger `Authorize` insert:
+   `Bearer <token>`
+6. Run `GET /api/oxygenation_request`.
 
-## Important for Postman
+## Postman setup (strictly manual headers)
 
-- Do **not** use Postman `Authorization` tab.
-- Put tokens only in request headers manually:
-  - `Authorization: Bearer {{creator_token}}`
-  - `Authorization: Bearer {{moderator_token}}`
-- For JSON requests also set:
-  - `Content-Type: application/json`
+1. In every protected request set `Authorization` tab to `No Auth`.
+2. Open `Headers` tab and fill keys manually (white editable rows):
+   - `Authorization: Bearer <PASTE_TOKEN_HERE>`
+   - `Content-Type: application/json` (for POST/PUT with JSON body)
+   - `Accept: application/json`
+3. Do not use `{{...}}` variables.
 
-## 2. Postman/Insomnia checks
+## Demo flow in Postman
 
-1. Guest request list (without Authorization):
-   - `GET /api/oxygenation_request`
-   - expected: `401` (or `403` by policy)
+1. Guest check (without Authorization header)
+   - `GET http://localhost:8095/api/oxygenation_request`
+   - Expected: `401` (or `403` by policy)
 
-2. Creator login:
-   - `POST /api/users/login`
-   - body:
+2. Login creator
+   - `POST http://localhost:8095/api/users/login`
+   - Headers:
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"login":"creator","password":"creator"}`
-   - save token as `creator_token`
+   - Copy `token` from response.
 
-3. Moderator login:
-   - `POST /api/users/login`
-   - body:
+3. Login moderator
+   - `POST http://localhost:8095/api/users/login`
+   - Headers:
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"login":"moderator","password":"moderator"}`
-   - save token as `moderator_token`
+   - Copy `token` from response.
 
-4. Creator sees only own requests:
-   - `GET /api/oxygenation_request`
-   - header:
-     - `Authorization: Bearer {{creator_token}}`
+4. Creator sees only own requests
+   - `GET http://localhost:8095/api/oxygenation_request`
+   - Headers:
+     - `Authorization: Bearer <CREATOR_TOKEN_FROM_LOGIN>`
+     - `Accept: application/json`
 
-5. Creator creates/updates draft:
-   - `POST /api/request-services`
-   - header:
-     - `Authorization: Bearer {{creator_token}}`
-   - body:
+5. Create draft (creator)
+   - `POST http://localhost:8095/api/request-services`
+   - Headers:
+     - `Authorization: Bearer <CREATOR_TOKEN_FROM_LOGIN>`
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"service_id":1}`
-   - take `request_id` from response
+   - Take `request_id` from response and manually paste it into next URLs.
 
-6. Fill request fields:
-   - `PUT /api/oxygenation_request/{{request_id}}`
-   - header:
-     - `Authorization: Bearer {{creator_token}}`
-   - body:
+6. Update request fields (creator)
+   - `PUT http://localhost:8095/api/oxygenation_request/101`
+   - Headers:
+     - `Authorization: Bearer <CREATOR_TOKEN_FROM_LOGIN>`
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"patient_name":"Demo Patient","blood_value_pao2":90.1,"fio2_value":0.5}`
 
-7. Form request:
-   - `PUT /api/oxygenation_request/{{request_id}}/form`
-   - header:
-     - `Authorization: Bearer {{creator_token}}`
+7. Form request (creator)
+   - `PUT http://localhost:8095/api/oxygenation_request/101/form`
+   - Headers:
+     - `Authorization: Bearer <CREATOR_TOKEN_FROM_LOGIN>`
+     - `Accept: application/json`
 
-8. Try complete by creator (must fail):
-   - `PUT /api/oxygenation_request/{{request_id}}/review`
-   - header:
-     - `Authorization: Bearer {{creator_token}}`
-   - body:
+8. Try complete by creator (must fail)
+   - `PUT http://localhost:8095/api/oxygenation_request/101/review`
+   - Headers:
+     - `Authorization: Bearer <CREATOR_TOKEN_FROM_LOGIN>`
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"action":"complete"}`
-   - expected: `403`
+   - Expected: `403`
 
-9. Complete by moderator (must succeed):
-   - `PUT /api/oxygenation_request/{{request_id}}/review`
-   - header:
-     - `Authorization: Bearer {{moderator_token}}`
-   - body:
+9. Complete by moderator (must succeed)
+   - `PUT http://localhost:8095/api/oxygenation_request/101/review`
+   - Headers:
+     - `Authorization: Bearer <MODERATOR_TOKEN_FROM_LOGIN>`
+     - `Content-Type: application/json`
+     - `Accept: application/json`
+   - Body:
      - `{"action":"complete"}`
-   - expected: `200` + updated `completed_at` and `moderator_login`
+   - Expected: `200` and updated `completed_at`, `moderator_login`.
 
-10. Moderator sees all requests:
-   - `GET /api/oxygenation_request`
-   - header:
-     - `Authorization: Bearer {{moderator_token}}`
+10. Moderator sees all requests
+   - `GET http://localhost:8095/api/oxygenation_request`
+   - Headers:
+     - `Authorization: Bearer <MODERATOR_TOKEN_FROM_LOGIN>`
+     - `Accept: application/json`
 
-## 3. Redis proof (sessions)
-
-Run from terminal:
+## Redis sessions check
 
 ```bash
 docker exec rip-redis-1 redis-cli -a password KEYS "rip:session:*"
 docker exec rip-redis-1 redis-cli -a password GET <session_key>
 ```
 
-`GET` should contain JSON with user fields (`user_id`, `login`, `role`).
+The `GET` value must include user fields: `user_id`, `login`, `role`.

@@ -1,8 +1,9 @@
-$kind: http-request
-name: создатель
-url: "{{base_url}}/api/oxygenation_request"
+﻿$kind: http-request
+name: СЃРѕР·РґР°С‚РµР»СЊ
+url: "http://localhost:8095/api/oxygenation_request"
 method: GET
 headers:
   - name: Authorization
-    value: Bearer {{creator_token}}
+    value: Bearer <CREATOR_TOKEN_FROM_LOGIN>
 order: 201441342740692
+

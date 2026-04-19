@@ -1,13 +1,14 @@
-$kind: http-request
-name: создание черновика
-url: "{{base_url}}/api/request-services"
+﻿$kind: http-request
+name: СЃРѕР·РґР°РЅРёРµ С‡РµСЂРЅРѕРІРёРєР°
+url: "http://localhost:8095/api/request-services"
 method: POST
 headers:
   - name: Content-Type
     value: application/json
   - name: Authorization
-    value: Bearer {{creator_token}}
+    value: Bearer <CREATOR_TOKEN_FROM_LOGIN>
 body:
   type: json
-  content: '{"service_id": {{service_id_1}}}'
+  content: '{"service_id": 1}'
 order: 2780382871584327
+

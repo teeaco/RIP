@@ -1,12 +1,12 @@
-$kind: http-request
+﻿$kind: http-request
 name: New Request
-url: "{{base_url}}/api/oxygenation_request/{{request_id}}"
+url: "http://localhost:8095/api/oxygenation_request/101"
 method: PUT
 headers:
   - name: Content-Type
     value: application/json
   - name: Authorization
-    value: Bearer {{creator_token}}
+    value: Bearer <CREATOR_TOKEN_FROM_LOGIN>
 body:
   type: json
   content: "{\r
@@ -19,3 +19,4 @@ body:
 
     }\r\n"
 order: 2922238508418114
+

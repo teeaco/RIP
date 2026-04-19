@@ -1,8 +1,9 @@
-$kind: http-request
-name: модератор все заявки
-url: "{{base_url}}/api/oxygenation_request"
+﻿$kind: http-request
+name: РјРѕРґРµСЂР°С‚РѕСЂ РІСЃРµ Р·Р°СЏРІРєРё
+url: "http://localhost:8095/api/oxygenation_request"
 method: GET
 headers:
   - name: Authorization
-    value: Bearer {{moderator_token}}
+    value: Bearer <MODERATOR_TOKEN_FROM_LOGIN>
 order: 4487925451890160
+

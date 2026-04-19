@@ -1,5 +1,6 @@
-$kind: http-request
-name: мод завершает заявку
+﻿$kind: http-request
+name: РјРѕРґ Р·Р°РІРµСЂС€Р°РµС‚ Р·Р°СЏРІРєСѓ
 url: ""
 method: PUT
 order: 4503539866420453
+

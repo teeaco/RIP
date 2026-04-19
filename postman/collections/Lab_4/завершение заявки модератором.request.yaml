@@ -1,13 +1,14 @@
-$kind: http-request
-name: завершение заявки модератором
-url: "{{base_url}}/api/oxygenation_request/{{request_id}}/review"
+﻿$kind: http-request
+name: Р·Р°РІРµСЂС€РµРЅРёРµ Р·Р°СЏРІРєРё РјРѕРґРµСЂР°С‚РѕСЂРѕРј
+url: "http://localhost:8095/api/oxygenation_request/101/review"
 method: PUT
 headers:
   - name: Content-Type
     value: application/json
   - name: Authorization
-    value: Bearer {{moderator_token}}
+    value: Bearer <MODERATOR_TOKEN_FROM_LOGIN>
 body:
   type: json
   content: "{\"action\":\"complete\"}\r\n"
 order: 3382844815454171
+
