@@ -66,9 +66,7 @@ type requestServiceResponse struct {
 	ImageURL          string `json:"image_url,omitempty"`
 	VideoURL          string `json:"video_url,omitempty"`
 	Benchmark         string `json:"benchmark,omitempty"`
-	Quantity          int    `json:"quantity"`
-	Position          int    `json:"position"`
-	IsPrimary         bool   `json:"is_primary"`
+	DoctorComment     string `json:"doctor_comment,omitempty"`
 	ResultCoefficient any    `json:"result_coefficient"`
 }
 
@@ -111,9 +109,7 @@ type addRequestServicePayload struct {
 }
 
 type updateRequestServicePayload struct {
-	Quantity  *int  `json:"quantity"`
-	Position  *int  `json:"position"`
-	IsPrimary *bool `json:"is_primary"`
+	DoctorComment *string `json:"doctor_comment"`
 }
 
 type reviewRequestPayload struct {
@@ -244,9 +240,7 @@ func (h *Handler) UpdateRequestService(w http.ResponseWriter, r *http.Request) {
 
 	current := actor.Current()
 	item, err := h.repo.UpdateRequestServiceInDraft(current.CreatorID, requestID, serviceID, repository.RequestServiceUpdateInput{
-		Quantity:  payload.Quantity,
-		Position:  payload.Position,
-		IsPrimary: payload.IsPrimary,
+		DoctorComment: payload.DoctorComment,
 	})
 	if err != nil {
 		writeRepositoryError(w, err)
@@ -588,9 +582,7 @@ func serializeRequestService(item repository.RequestService) requestServiceRespo
 		ImageURL:          nullableStringToValue(item.Service.ImageURL),
 		VideoURL:          nullableStringToValue(item.Service.VideoURL),
 		Benchmark:         item.Service.Benchmark,
-		Quantity:          item.Quantity,
-		Position:          item.Position,
-		IsPrimary:         item.IsPrimary,
+		DoctorComment:     nullableStringToValue(item.DoctorComment),
 		ResultCoefficient: nullableFloatToAny(item.ResultCoefficient),
 	}
 }
@@ -628,12 +620,6 @@ func serializeRequest(request repository.OxygenationRequest, creatorLogin string
 func requestResultInfo(request repository.OxygenationRequest) (string, *float64) {
 	if len(request.Items) == 0 {
 		return "", nil
-	}
-
-	for _, item := range request.Items {
-		if item.IsPrimary {
-			return item.Service.Name, item.ResultCoefficient
-		}
 	}
 
 	first := request.Items[0]
