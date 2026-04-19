@@ -112,11 +112,9 @@ func (OxygenationRequest) TableName() string {
 }
 
 type RequestService struct {
-	RequestID         uint `gorm:"primaryKey;not null;index"`
-	ServiceID         uint `gorm:"primaryKey;not null;index"`
-	Quantity          int  `gorm:"not null;default:1"`
-	Position          int  `gorm:"not null;default:1"`
-	IsPrimary         bool `gorm:"not null;default:false"`
+	RequestID         uint    `gorm:"primaryKey;not null;index"`
+	ServiceID         uint    `gorm:"primaryKey;not null;index"`
+	DoctorComment     *string `gorm:"type:text"`
 	ResultCoefficient *float64
 	Request           OxygenationRequest `gorm:"foreignKey:RequestID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 	Service           OxygenationService `gorm:"foreignKey:ServiceID;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
@@ -181,8 +179,10 @@ func (r *Repository) cleanupLegacySchema() error {
 		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS mm_coefficient`,
 		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS diagnosis_label`,
 		`ALTER TABLE oxygenation_requests DROP COLUMN IF EXISTS mm_comment`,
-		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS doctor_comment`,
 		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS created_at`,
+		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS quantity`,
+		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS position`,
+		`ALTER TABLE oxygenation_request_services DROP COLUMN IF EXISTS is_primary`,
 		`DROP INDEX IF EXISTS ux_request_service_unique`,
 	}
 
@@ -356,8 +356,7 @@ func (r *Repository) GetDraftCart(userID uint) (DraftCart, error) {
 	var itemsCount int64
 	if err := r.db.Model(&RequestService{}).
 		Where("request_id = ?", request.ID).
-		Select("COALESCE(SUM(quantity), 0)").
-		Scan(&itemsCount).Error; err != nil {
+		Count(&itemsCount).Error; err != nil {
 		return DraftCart{}, err
 	}
 
@@ -394,10 +393,6 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			return err
 		}
 
-		if err := tx.Model(&RequestService{}).Where("request_id = ?", request.ID).Update("is_primary", false).Error; err != nil {
-			return err
-		}
-
 		resultCoefficient := calculateOxygenationIndex(request.BloodValuePaO2, request.FiO2Value)
 		if err := tx.Model(&RequestService{}).Where("request_id = ?", request.ID).Update("result_coefficient", resultCoefficient).Error; err != nil {
 			return err
@@ -406,20 +401,9 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 		var item RequestService
 		err = tx.Where("request_id = ? AND service_id = ?", request.ID, serviceID).First(&item).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			var maxPosition int64
-			if err := tx.Model(&RequestService{}).
-				Where("request_id = ?", request.ID).
-				Select("COALESCE(MAX(position), 0)").
-				Scan(&maxPosition).Error; err != nil {
-				return err
-			}
-
 			item = RequestService{
 				RequestID:         request.ID,
 				ServiceID:         serviceID,
-				Quantity:          1,
-				Position:          int(maxPosition) + 1,
-				IsPrimary:         true,
 				ResultCoefficient: resultCoefficient,
 			}
 			if err := tx.Create(&item).Error; err != nil {
@@ -431,8 +415,6 @@ func (r *Repository) AddServiceToDraft(userID, serviceID uint) (uint, error) {
 			if err := tx.Model(&RequestService{}).
 				Where("request_id = ? AND service_id = ?", request.ID, serviceID).
 				Updates(map[string]any{
-					"quantity":           item.Quantity + 1,
-					"is_primary":         true,
 					"result_coefficient": resultCoefficient,
 				}).Error; err != nil {
 				return err
@@ -451,7 +433,7 @@ func (r *Repository) GetRequestByID(userID, requestID uint) (OxygenationRequest,
 	if err := r.db.
 		Where("id = ? AND creator_id = ?", requestID, userID).
 		Preload("Items", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position asc")
+			return db.Order("service_id asc")
 		}).
 		Preload("Items.Service").
 		First(&request).Error; err != nil {

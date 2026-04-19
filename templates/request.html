@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заявка oxygenation_request | Степени оксигенации</title>
+    <title>Р—Р°СЏРІРєР° oxygenation_request | РЎС‚РµРїРµРЅРё РѕРєСЃРёРіРµРЅР°С†РёРё</title>
     <link rel="stylesheet" href="/static/styles/style.css?v=20260322-4">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
 
     <main class="container">
         <section class="request-meta-card">
-            <h1 class="request-title-main">Пациент: {{.Request.PatientName}}</h1>
+            <h1 class="request-title-main">РџР°С†РёРµРЅС‚: {{.Request.PatientName}}</h1>
             <div class="request-meta-grid">
                 <div class="meta-item">
                     <span class="meta-label">PaO2</span>
@@ -27,7 +27,7 @@
                     <span class="meta-value">{{.Request.ID}}</span>
                 </div>
                 <div class="meta-item">
-                    <span class="meta-label">Главная степень</span>
+                    <span class="meta-label">Р“Р»Р°РІРЅР°СЏ СЃС‚РµРїРµРЅСЊ</span>
                     <span class="meta-value">{{.Request.PrimaryService}}</span>
                 </div>
             </div>
@@ -36,36 +36,36 @@
 
             <div class="request-inline-result">
                 <div class="mm-result-row">
-                    <span class="mm-label">Коэффициент результата (м-м):</span>
+                    <span class="mm-label">РљРѕСЌС„С„РёС†РёРµРЅС‚ СЂРµР·СѓР»СЊС‚Р°С‚Р° (Рј-Рј):</span>
                     <span class="mm-value">{{.Request.ResultCoefficient}}</span>
                 </div>
                 <div class="mm-result-row">
-                    <span class="mm-label">Результат:</span>
+                    <span class="mm-label">Р РµР·СѓР»СЊС‚Р°С‚:</span>
                     <span class="mm-value">{{.Request.ResultLabel}}</span>
                 </div>
                 <form action="/oxygenation_request/{{.Request.ID}}/delete" method="POST" class="request-delete-form">
-                    <button type="submit" class="btn-delete-request">Удалить</button>
+                    <button type="submit" class="btn-delete-request">РЈРґР°Р»РёС‚СЊ</button>
                 </form>
             </div>
         </section>
 
         <section class="request-services">
-            <h2>Степени оксигенации</h2>
+            <h2>РЎС‚РµРїРµРЅРё РѕРєСЃРёРіРµРЅР°С†РёРё</h2>
 
             <div class="service-card service-card-header">
                 <div class="service-row service-row-header">
-                    <span class="service-field">Степень оксигенации</span>
-                    <span class="service-field">Изображение</span>
-                    <span class="service-field">Диапазон индекса</span>
+                    <span class="service-field">РЎС‚РµРїРµРЅСЊ РѕРєСЃРёРіРµРЅР°С†РёРё</span>
+                    <span class="service-field">РР·РѕР±СЂР°Р¶РµРЅРёРµ</span>
+                    <span class="service-field">Р”РёР°РїР°Р·РѕРЅ РёРЅРґРµРєСЃР°</span>
                 </div>
             </div>
 
             {{range .Rows}}
-            <div class="service-card{{if .IsPrimary}} service-active{{end}}" data-service-id="{{.ID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
+            <div class="service-card" data-service-id="{{.ID}}" data-image-url="{{.ImageURL}}" data-video-url="{{.VideoURL}}">
                 <div class="service-row">
                     <span class="service-field service-main-field">
                         <a href="/services/{{.ID}}" class="service-link">{{.Name}}</a>
-                        <small class="service-extra">Количество: {{.Quantity}}</small>
+                        {{if .DoctorComment}}<small class="service-extra">Комментарий врача: {{.DoctorComment}}</small>{{end}}
                     </span>
                     <span class="service-field"><img class="service-thumb" src="{{.ImageURL}}" alt="{{.Name}}"></span>
                     <span class="service-field">{{.Benchmark}}</span>

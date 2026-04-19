@@ -25,8 +25,7 @@ type requestServiceRow struct {
 	Benchmark         string
 	ImageURL          string
 	VideoURL          string
-	Quantity          int
-	IsPrimary         bool
+	DoctorComment     string
 	ResultCoefficient string
 }
 
@@ -139,19 +138,18 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 	primaryService := "-"
 	var primaryCoefficient *float64
 
-	for _, item := range request.Items {
+	for idx, item := range request.Items {
 		rows = append(rows, requestServiceRow{
 			ID:                item.Service.ID,
 			Name:              item.Service.Name,
 			Benchmark:         item.Service.Benchmark,
 			ImageURL:          safeString(item.Service.ImageURL),
 			VideoURL:          safeString(item.Service.VideoURL),
-			Quantity:          item.Quantity,
-			IsPrimary:         item.IsPrimary,
+			DoctorComment:     safeString(item.DoctorComment),
 			ResultCoefficient: formatCoefficient(item.ResultCoefficient),
 		})
 
-		if item.IsPrimary {
+		if idx == 0 {
 			primaryService = item.Service.Name
 			primaryCoefficient = item.ResultCoefficient
 		}
