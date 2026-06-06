@@ -1,59 +1,36 @@
-# Лабораторная 2 (PostgreSQL + GORM + шаблоны)
+# Лабораторная работа 2
 
-## Формула расчета результата
-Индекс оксигенации рассчитывается по формуле:
+## Задание
+Подключить PostgreSQL, перенести данные предметной области в таблицы и использовать GORM для работы с услугами, заявками, пользователями и связью заявки с услугами.
 
+## Что сделано
+- Созданы таблицы `app_users`, `oxygenation_services`, `oxygenation_requests`, `oxygenation_request_services`.
+- Добавлены статусы заявки: `draft`, `deleted`, `formed`, `completed`, `rejected`.
+- Сделан уникальный черновик заявки для пользователя.
+- Реализованы получение услуг, поиск, карточка услуги и состав заявки.
+- Добавлено создание черновика при добавлении услуги.
+- Удаление заявки выполнено как смена статуса на `deleted`.
+- Индекс оксигенации хранится в поле `mm_coefficient`.
+
+## Формула
 `PaO2 / FiO2`
 
-Поле в заявке: `mm_coefficient`.
-
-Индекс хранится в БД и отображается на странице `oxygenation_request`.
-
-## Что реализовано
-- 4 таблицы по предметной области:
-  - `app_users`
-  - `oxygenation_services`
-  - `oxygenation_requests`
-  - `oxygenation_request_services`
-- 5 статусов заявки:
-  - `draft`
-  - `deleted`
-  - `formed`
-  - `completed`
-  - `rejected`
-- составной уникальный ключ в m-m:
-  - `(request_id, service_id)` в `oxygenation_request_services`
-- ограничение: у пользователя не более одной `draft` заявки:
-  - частичный уникальный индекс `ux_single_draft_request`
-- ORM (GORM) для:
-  - получения/поиска услуг
-  - карточки услуги
-  - создания/чтения черновика
-  - добавления услуги в черновик
-- логическое удаление заявки через SQL `UPDATE` (без ORM).
-
-## HTTP методы (5)
-- `GET /services` — список услуг + поиск
-- `GET /services/{id}` — карточка услуги
-- `GET /oxygenation_request/{id}` — состав заявки
-- `POST /oxygenation_request/add-service` — добавить услугу в текущую заявку (черновик)
-- `POST /oxygenation_request/{id}/delete` — логически удалить заявку (SQL UPDATE)
+## Маршруты
+- `/services` — список услуг и поиск.
+- `/services/{id}` — карточка услуги.
+- `/oxygenation_request/{id}` — состав заявки.
+- `/oxygenation_request/add-service` — добавление услуги в черновик.
+- `/oxygenation_request/{id}/delete` — логическое удаление черновика.
 
 ## Запуск
-1. Поднять инфраструктуру:
-   - `docker compose up -d db adminer minio redis`
-2. Проверить контейнеры:
-   - `docker compose ps`
-3. Запустить приложение:
-   - `go test ./...`
-   - `go run ./cmd/rip`
-4. Открыть:
-   - приложение: `http://localhost:8080/services`
-   - Adminer: `http://localhost:8081`
+1. Поднять инфраструктуру: `docker compose up -d db adminer minio redis`
+2. Проверить контейнеры: `docker compose ps`
+3. Проверить проект: `go test ./...`
+4. Запустить сервер: `go run ./cmd/rip`
+5. Открыть приложение: `http://localhost:8080/services`
+6. Открыть Adminer: `http://localhost:8081`
 
-## Параметры подключения приложения к БД
-По умолчанию приложение подключается к контейнерному Postgres:
-
+## Подключение к базе
 - `DB_HOST=127.0.0.1`
 - `DB_PORT=55432`
 - `DB_USER=root`
@@ -61,31 +38,10 @@
 - `DB_NAME=RIP`
 - `DB_SSLMODE=disable`
 
-Если нужно, можно переопределить:
-- PowerShell: `$env:DB_PORT="55432"; $env:APP_PORT="8080"; go run ./cmd/rip`
-
-## Доступ в Adminer
-- System: `PostgreSQL`
-- Server: `db` (если Adminer открыт из docker-compose) или `localhost` (если открываете локально)
-- Username: `root`
-- Password: `root`
-- Database: `RIP`
-
-## Как показать лабораторную
-1. В Adminer добавить новую услугу в таблицу `oxygenation_services`.
-2. На `/services` выполнить поиск по названию/диапазону.
-3. Добавить две услуги кнопкой `Добавить` (POST через ORM).
-4. Открыть корзину (черновик) и показать состав заявки.
-5. Нажать `Удалить` (POST, SQL UPDATE).
-6. Перейти по URL удаленной заявки и показать, что она недоступна.
-7. В БД сделать `SELECT` по `oxygenation_requests` и `oxygenation_request_services`:
-   - показать `status='deleted'`
-   - показать новую `draft` после повторного добавления услуг.
-8. Изменить поля заявки/м-м в БД и обновить страницу приложения.
-
-## Где что находится
-- Сервер и роутинг: `internal/api/server.go`
-- Контроллеры: `internal/app/handler/handler.go`
-- Модели + миграции + ORM + SQL update: `internal/app/repository/repository.go`
-- Шаблоны: `templates/*.html`
-- Стили: `resources/styles/style.css`
+## Проверка
+1. Добавить услугу в таблицу `oxygenation_services`.
+2. Найти услугу на странице `/services`.
+3. Добавить две услуги в черновик заявки.
+4. Открыть заявку и проверить состав.
+5. Удалить черновик.
+6. Проверить в Adminer таблицы `oxygenation_requests` и `oxygenation_request_services`.
